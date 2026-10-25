@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2469a5"><title>Tech-North Reports</title><link rel="manifest" href="./manifest.webmanifest">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--blue:#2469a5;--blue-dark:#174a78;--pale:#eaf2f9;--line:#b8c6d3;--ink:#1c2933;--bg:#f3f6f9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--ink)}
+header{background:var(--blue);color:white;padding:18px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-weight:900;font-size:25px;font-style:italic;letter-spacing:-1px}.tag{font-size:11px;font-weight:bold;margin-top:3px}
+main{max-width:960px;margin:22px auto;padding:0 14px 40px}.screen{display:none}.screen.active{display:block}
+h1{font-size:22px;margin:0 0 7px}p.hint{color:#607180;margin:0 0 18px;line-height:1.45}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:25px}
+.menu button{background:white;border:1px solid #d5dee6;border-radius:15px;padding:24px 12px;min-height:155px;box-shadow:0 3px 10px #23394b0a;color:var(--ink)}
+.menu .ico{font-size:34px;display:block;margin-bottom:14px}.menu strong{display:block;color:var(--blue-dark);font-size:16px}.menu small{display:block;color:#687986;margin-top:7px;line-height:1.3}
+button{cursor:pointer;font-weight:bold;border:0;border-radius:8px;padding:11px 14px;background:var(--blue);color:white;font-size:14px}
+button.light{background:#e6eef5;color:#174a78}button.red{background:#b42318}button:active{transform:translateY(1px)}
+.toprow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.sheet{background:#fff;border:1px solid #d3dce4;padding:15px;box-shadow:0 3px 12px #17212b0a}
+.report-head{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:12px;padding-bottom:12px;border-bottom:3px solid var(--blue)}
+.report-title{text-align:center;font-weight:900;font-size:15px;margin-top:10px;line-height:1.3}.address{text-align:right;font-size:10px;line-height:1.5;color:#384957}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.field{display:grid;grid-template-columns:minmax(112px,37%) 1fr;border:1px solid var(--line);min-height:34px}
+.field label{background:var(--pale);font-size:11px;font-weight:bold;padding:8px 6px;border-right:1px solid var(--line);display:flex;align-items:center}
+input,textarea,select{font:inherit;min-width:0;width:100%;border:0;padding:7px;background:white;color:var(--ink);outline-color:#5a9dd5}
+input:focus,textarea:focus{background:#fffbea;box-shadow:inset 0 0 0 2px #f0c85a}
+.section{border:1px solid var(--line);margin-top:11px}.sectiontitle{background:var(--blue);color:white;text-align:center;font-size:11px;font-weight:bold;padding:7px}
+.fields{display:grid;grid-template-columns:1fr 1fr}.fields .field{border-top:0}.fields .field:nth-child(odd){border-right:1px solid var(--line)}.fields .field:nth-child(even){border-right:0}
+.result{padding:10px}.result textarea{border:1px solid var(--line);min-height:65px;resize:vertical}
+.status{display:flex;gap:0;border:1px solid var(--line);margin-top:8px}.status label{padding:10px;flex:1;font-weight:bold;font-size:12px}.status label:first-child{background:#78b94e}.status label:last-child{background:#c62828;color:white}.status input{width:auto}
+.photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px}
+.photo{height:155px;min-height:155px;max-height:155px;border:2px dashed #9eafbd;border-radius:7px;background:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;text-align:center;flex:0 0 auto}
+.photo img{display:none;width:100%;height:155px;max-height:155px;flex:0 0 155px;object-fit:contain;background:white}.photo .plus{font-size:29px;color:var(--blue)}.photo .label{font-size:12px;font-weight:bold;margin:4px}.photo .sub{font-size:10px;color:#607180;padding:0 4px 4px}.photo input{position:absolute;inset:0;opacity:0;cursor:pointer;height:100%;font-size:0}
+.photo .remove{position:absolute;right:4px;top:4px;padding:5px 7px;font-size:10px;display:none;z-index:2}
+.signature{display:grid;grid-template-columns:.9fr 1.5fr .9fr;margin-top:10px;border:1px solid var(--line)}.signature>div{border-right:1px solid var(--line);padding:7px;min-width:0}.signature>div:last-child{border-right:0}.signature label{display:block;font-size:10px;font-weight:bold;margin-bottom:4px}.signature input,.signature textarea{display:block;width:100%;min-width:0;border:1px solid var(--line);padding:6px;font-size:11px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}.signature textarea{height:38px;min-height:38px;resize:none;overflow:hidden}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.saved-list{display:grid;gap:9px}.saved-card{background:white;border:1px solid #d5dee6;border-radius:10px;padding:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.saved-card small{display:block;color:#687986;margin-top:4px}.empty{background:white;border:1px dashed #b8c6d3;padding:24px;border-radius:10px;color:#607180;text-align:center}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#173d5d;color:white;padding:12px 18px;border-radius:9px;display:none;z-index:9;box-shadow:0 4px 15px #0003}
+@media(max-width:650px){.menu{grid-template-columns:1fr;gap:10px}.menu button{min-height:0;display:grid;grid-template-columns:52px 1fr;text-align:left;align-items:center;padding:16px}.menu .ico{grid-row:span 2;margin:0;font-size:30px}.menu small{margin-top:3px}.report-head{grid-template-columns:1fr}.address{text-align:left}.meta,.fields{grid-template-columns:1fr}.fields .field{border-right:0!important}.field{grid-template-columns:minmax(105px,39%) 1fr}.sheet{padding:8px}.photo-grid{gap:4px;padding:5px}.photo{height:110px;min-height:110px;max-height:110px}.photo img{height:110px;max-height:110px;flex-basis:110px}.photo .label{font-size:10px}.photo .sub{font-size:9px}.signature{grid-template-columns:1fr}.signature>div{border-right:0;border-bottom:1px solid var(--line)}.signature textarea{height:34px;min-height:34px}}
+@page{size:210mm 297mm;margin:0}
+.pdf-export-mode .photo input,.pdf-export-mode .photo .plus,.pdf-export-mode .photo .label,.pdf-export-mode .photo .sub,.pdf-export-mode .photo .remove,.pdf-export-mode .signature-tools,.pdf-export-mode .zoom-controls,.pdf-export-mode .actions{display:none!important}
+.pdf-export-mode .no-print{display:none!important}
+.pdf-export-mode .photo{height:145px!important;min-height:145px!important;max-height:145px!important;border:1px solid #aebdca!important;overflow:hidden!important}
+.pdf-export-mode .photo img{display:block!important;width:100%!important;height:145px!important;max-height:145px!important;object-fit:contain!important}
+#reportSheet{box-sizing:border-box;width:210mm;min-height:297mm;margin:0 auto;padding:10mm;background:#fff}
+.signature-pad{display:block;width:100%;height:72px;border:1px solid var(--line);background:#fff;touch-action:none;cursor:crosshair}
+.signature-tools{display:flex;gap:6px;align-items:center;margin-top:4px}
+.signature-tools button{font-size:10px;padding:5px 8px}
+@media(max-width:650px){#reportSheet{width:210mm;min-height:297mm}.signature-pad{height:90px}}
+@media print{body{background:white}header,.no-print,.toast{display:none!important}main{padding:0;margin:0;max-width:none}.screen{display:none!important}#reportScreen{display:block!important}.sheet{box-shadow:none;border:0;padding:0}.photo input,.photo .plus,.photo .label,.photo .sub,.photo .remove{display:none!important}.photo img{display:block!important;height:110px}.photo{min-height:110px;border:1px solid #aaa}.section{break-inside:avoid}.field{min-height:25px}.field label{font-size:9px;padding:4px}.field input{font-size:9px;padding:4px}.sectiontitle{padding:5px}.result textarea{min-height:35px}.report-title{font-size:13px}}
+
+/* Closer match to the supplied Tech-North one-page report */
+main{max-width:1120px}
+.sheet{padding:12px;border:1px solid #b7c2cb;transform-origin:top center}
+.report-head{border-bottom:0;padding:0 0 7px;grid-template-columns:1fr 1.15fr}
+.report-head .logo{font-size:30px;color:#2873b7;text-decoration:underline;text-decoration-thickness:2px}
+.report-title{text-align:left;font-size:13px;margin-top:8px;line-height:1.15}
+.address{text-align:right;font-size:8px;line-height:1.3;color:#111}
+.meta{gap:0;margin:0 0 7px;grid-template-columns:1fr 1fr}
+.field{min-height:23px;border-color:#aebdca}
+.field label{background:#e2edf6;font-size:9px;padding:4px 5px;color:#253748}
+.field input,.field select{font-size:9px;padding:4px}
+.section{margin-top:7px;border-color:#aebdca}
+.sectiontitle{font-size:9px;padding:5px;background:#3479b3}
+.fields .field label{font-size:9px}
+.result{padding:7px}
+.result textarea{min-height:48px;font-size:10px;border:0;text-align:center;color:#b52e2e;font-style:italic}
+.status{margin-top:6px}
+.status label{font-size:9px;padding:6px}
+.photo-grid{padding:8px 4px;gap:12px}
+.photo{height:145px;min-height:145px;max-height:145px;border:0;border-radius:0;background:white}
+.photo img{height:145px;max-height:145px;flex-basis:145px}
+.photo .plus{font-size:28px}
+.signature{margin-top:7px}
+.signature>div{padding:5px}
+.signature label{font-size:8px}
+.signature input,.signature textarea{font-size:9px;padding:4px}
+.signature textarea{height:auto;min-height:30px;max-height:66px;overflow:hidden;resize:none;white-space:pre-wrap;overflow-wrap:anywhere}
+.zoom-controls{display:flex;align-items:center;gap:6px;margin-left:auto}
+.zoom-controls span{font-weight:bold;font-size:12px;min-width:42px;text-align:center}
+@media(min-width:700px){.sheet{padding:18px}.field{min-height:26px}.field label,.fields .field label{font-size:10px}.field input,.field select{font-size:10px}.sectiontitle{font-size:10px;padding:6px}}
+@media print{
+  @page{size:210mm 297mm;margin:0}
+  html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  header,.no-print,.toast{display:none!important}
+  main{display:block!important;width:210mm!important;max-width:none!important;margin:0!important;padding:0!important}
+  .screen{display:none!important}
+  #reportScreen{display:block!important;width:210mm!important;margin:0!important;padding:0!important}
+  #reportSheet{box-sizing:border-box!important;width:210mm!important;height:297mm!important;min-height:297mm!important;margin:0!important;padding:10mm!important;border:0!important;box-shadow:none!important;transform:none!important;zoom:1!important;overflow:hidden!important}
+  #reportSheet.sheet{width:210mm!important;min-height:297mm!important;padding:10mm!important;border:0!important;box-shadow:none!important}
+  .report-head{grid-template-columns:1fr 1.15fr}
+  .meta,.fields{grid-template-columns:1fr 1fr}
+  .fields .field:nth-child(odd){border-right:1px solid var(--line)}
+  .fields .field:nth-child(even){border-right:0}
+  .field{min-height:25px;break-inside:avoid}
+  .field label{font-size:9px;padding:4px}
+  .field input,.field select{font-size:9px;padding:4px}
+  .section{break-inside:avoid;page-break-inside:avoid}
+  .sectiontitle{padding:5px}
+  .result textarea{min-height:35px}
+  .photo-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .photo{height:110px!important;min-height:110px!important;max-height:110px!important}
+  .photo img{height:110px!important;min-height:110px!important;max-height:110px!important;width:100%!important;flex:0 0 110px!important}
+  .photo input,.photo .plus,.photo .label,.photo .sub,.photo .remove{display:none!important}
+  .photo img{display:block!important;object-fit:contain}
+  .zoom-controls{display:none!important}
+}
+</style></head>
+<body>
+<header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div></header>
+<main>
+<section id="homeScreen" class="screen active">
+<h1>Inspection reports</h1><p class="hint">Create a report on site, save it on this device, or export a copy to your phone or tablet.</p>
+<div class="menu">
+<button onclick="newReport()"><span class="ico">📝</span><strong>1. New report</strong><small>Open the report template and fill it in</small></button>
+<button onclick="showSaved()"><span class="ico">📁</span><strong>2. Reports saved</strong><small>Open or continue a saved report</small></button>
+<button onclick="exportCurrent()"><span class="ico">📤</span><strong>3. Export report</strong><small>Save a copy to this phone, tablet or laptop</small></button>
+<button onclick="showExaminers()"><span class="ico">👷</span><strong>4. Examiner profiles</strong><small>Save workers, qualifications and signature images</small></button>
+</div>
+<p class="hint" style="margin-top:24px;font-size:12px">Reports stay on this device. Use Export report to download a PDF, Word document or full backup.</p>
+</section>
+<section id="reportScreen" class="screen">
+<div class="toprow no-print"><div><h1 id="formHeading">New inspection report</h1><p class="hint" style="margin:3px 0 0">Tap any field to type. Tap each photo box to take or choose a photo.</p></div><div class="zoom-controls no-print"><button class="light" onclick="zoomOut()" aria-label="Zoom out">−</button><span id="zoomValue">100%</span><button class="light" onclick="zoomIn()" aria-label="Zoom in">＋</button><button class="light" onclick="zoomReset()">Fit</button></div><button class="light" onclick="goHome()">← Home</button></div>
+<div class="sheet" id="reportSheet">
+<div class="report-head"><div><div class="logo">TECH-NORTH</div><div class="report-title">MAGNETIC PARTICLE<br>EXAMINATION REPORT</div></div><div class="address">128 WATERVAAL AVENUE<br>INDUSTRIAL SITES, RUSTENBURG 0299<br>Tel: (014) 592 3680</div></div>
+<div class="meta">
+<div class="field"><label>REPORT NUMBER</label><input data-key="reportNumber" placeholder="Enter report number"></div>
+<div><div class="field"><label>DATE</label><input data-key="date" type="date"></div><div class="field"><label>NEXT INSPECTION DATE</label><input data-key="nextDate" type="date"></div></div>
+</div>
+<div class="section"><div class="sectiontitle">CUSTOMER DETAILS</div><div class="fields">
+<div class="field"><label>Customer Name</label><input data-key="customer"></div><div class="field"><label>Examination Location</label><input data-key="location"></div>
+<div class="field"><label>Area</label><input data-key="area"></div><div class="field"><label>Order Number</label><input data-key="order"></div>
+</div></div>
+<div class="section"><div class="sectiontitle">COMPONENT / ITEM EXAMINED</div><div class="fields">
+<div class="field"><label>Item Description</label><input data-key="item"></div><div class="field"><label>Surface Finish</label><input data-key="surface" value="BARE METAL"></div>
+<div class="field"><label>Serial Number</label><input data-key="serial"></div><div class="field"><label>Orientation</label><input data-key="orientation" value="Vertical & Horizontal"></div>
+<div class="field"><label>Drawing / Reg. No.</label><input data-key="drawing"></div><div class="field"><label>Examination Extent</label><input data-key="extent" value="External Surface"></div>
+<div class="field"><label>Quantity</label><input data-key="quantity" value="One"></div><div class="field"><label>Stage</label><input data-key="stage"></div>
+<div class="field"><label>Material Type</label><input data-key="material" value="Ferromagnetic Material"></div><div class="field"><label>Nature</label><input data-key="nature" value="MPI - Magnetic Particle Inspection"></div>
+<div class="field"><label>Cleaning Pre</label><input data-key="cleanPre" value="Brushed and Wiped"></div><div class="field"><label>Cleaning Post</label><input data-key="cleanPost" value="Brush and Wiped"></div>
+</div></div>
+<div class="section"><div class="sectiontitle">EQUIPMENT / MATERIALS USED &amp; PROCESS CONTROLS</div><div class="fields">
+<div class="field"><label>Magnet Make &amp; S/N</label><input data-key="magnet"></div><div class="field"><label>Contrast Paint</label><input data-key="contrast"></div>
+<div class="field"><label>Pole Spacing</label><input data-key="pole" value="150 mm"></div><div class="field"><label>Particles / Batch</label><input data-key="particles"></div>
+<div class="field"><label>Magnetic Field Strength</label><input data-key="strength" value="18 kg Test Weight"></div><div class="field"><label>Particles Expiry Date</label><input data-key="expiry" type="date"></div>
+<div class="field"><label>System Performance Verification</label><input data-key="verification" value="N/A"></div><div class="field"><label>Light Intensity - White</label><input data-key="light" value="N/A"></div>
+</div></div>
+<div class="section"><div class="sectiontitle">EXAMINATION RESULTS</div><div class="result"><textarea data-key="results">Tested all welds for surface indications. No surface indications found at the time of test.</textarea><div class="status"><label><input type="radio" name="status" value="Acceptable" checked> Acceptable</label><label><input type="radio" name="status" value="Unacceptable"> Unacceptable</label></div></div></div>
+<div class="section"><div class="sectiontitle">PHOTOGRAPHS — TAP EACH BOX TO ADD A PHOTO</div><div class="photo-grid">
+<div class="photo" data-photo="0"><button type="button" class="remove no-print" onclick="removePhoto(event,0)">✕</button><span class="plus">＋</span><span class="label">Photo 1</span><span class="sub">Tap to take photo</span><img alt="Photo 1"><input class="no-print" type="file" accept="image/*" capture="environment" onchange="addPhoto(event,0)"></div>
+<div class="photo" data-photo="1"><button type="button" class="remove no-print" onclick="removePhoto(event,1)">✕</button><span class="plus">＋</span><span class="label">Photo 2</span><span class="sub">Tap to take photo</span><img alt="Photo 2"><input class="no-print" type="file" accept="image/*" capture="environment" onchange="addPhoto(event,1)"></div>
+<div class="photo" data-photo="2"><button type="button" class="remove no-print" onclick="removePhoto(event,2)">✕</button><span class="plus">＋</span><span class="label">Photo 3</span><span class="sub">Tap to take photo</span><img alt="Photo 3"><input class="no-print" type="file" accept="image/*" capture="environment" onchange="addPhoto(event,2)"></div>
+</div></div>
+<div class="section no-print" style="padding:8px"><label for="examinerProfileSelect"><b>USE SAVED EXAMINER PROFILE</b></label><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="examinerProfileSelect" style="border:1px solid var(--line);flex:1;min-width:180px" onchange="applyExaminerProfile(this.value)"><option value="">Choose a saved examiner…</option></select><button type="button" class="light" onclick="showExaminers()">Manage profiles</button></div></div>
+<div class="signature"><div><label>EXAMINER NAME</label><textarea data-key="examiner" rows="2">Wynand Petzer</textarea></div><div><label>QUALIFICATION</label><textarea data-key="qualification" rows="2">Magnetic Particle Testing Level 2</textarea></div><div><label>SIGNATURE</label><img id="reportSignaturePreview" alt="Imported examiner signature" style="display:none;max-width:100%;height:55px;object-fit:contain;object-position:left center;background:#fff"><div class="signature-tools no-print"><label class="light" style="display:inline-block;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:10px">Import signature image<input class="no-print" type="file" accept="image/*" style="display:none" onchange="importSignature(event)"></label><small>Import a saved signature image; drawing is disabled</small></div></div></div>
+</div>
+<div class="actions no-print"><button onclick="saveReport()">Save report</button><button class="light" onclick="exportCurrent()">Export report</button><button class="light" onclick="goHome()">Home</button></div>
+</section>
+<section id="examinersScreen" class="screen"><div class="toprow"><div><h1>Examiner profiles</h1><p class="hint" style="margin:3px 0 0">Save each worker's name, qualification and signature image for reuse.</p></div><button class="light" onclick="goHome()">← Home</button></div><div class="sheet" style="margin-bottom:14px"><h2 style="font-size:16px;margin:0 0 10px">Add / update examiner</h2><input id="profileId" type="hidden"><div class="fields"><div class="field"><label>Examiner name</label><input id="profileName" placeholder="Worker's full name"></div><div class="field"><label>Qualification</label><input id="profileQualification" placeholder="e.g. Magnetic Particle Testing Level 2"></div></div><div style="margin-top:10px"><label for="profileSignatureFile"><b>Signature image</b></label><input id="profileSignatureFile" type="file" accept="image/*" style="border:1px solid var(--line);margin-top:5px"><small style="display:block;color:#607180;margin-top:4px">Choose a clear PNG or JPG image of the worker's signature.</small><img id="profileSignaturePreview" alt="Signature preview" style="display:none;max-width:240px;max-height:80px;object-fit:contain;border:1px solid var(--line);margin-top:8px;background:white"></div><div class="actions"><button onclick="saveExaminerProfile()">Save examiner</button><button class="light" onclick="clearExaminerForm()">Clear form</button></div></div><div class="sheet" style="margin-bottom:14px"><h2 style="font-size:16px;margin:0 0 8px">Import workers from Excel</h2><p class="hint">Choose an Excel .xlsx file or a CSV exported from Excel. Required columns: Name and Qualification. Optional Signature column: use a data:image URL or the matching image filename. You can also select the signature images below.</p><label for="workerExcelFile"><b>Excel / CSV file</b></label><input id="workerExcelFile" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:block;margin:6px 0 12px" onchange="importWorkersSpreadsheet(event)"><label for="workerSignatureFiles"><b>Optional signature image files</b></label><input id="workerSignatureFiles" type="file" accept="image/*" multiple style="display:block;margin:6px 0 10px"><small class="hint">If the spreadsheet's Signature column contains filenames (for example john.jpg), select those image files here. Embedded pictures pasted directly into Excel cells may not be imported; use filenames or data:image values instead.</small></div><h2 style="font-size:16px">Saved examiners</h2><div id="examinerList" class="saved-list"></div></section>
+<section id="savedScreen" class="screen"><div class="toprow"><div><h1>Reports saved</h1><p class="hint" style="margin:3px 0 0">Saved reports on this device.</p></div><button class="light" onclick="goHome()">← Home</button></div><div id="savedList" class="saved-list"></div></section>
+<section id="exportScreen" class="screen"><div class="toprow"><div><h1>Export report</h1><p class="hint" style="margin:3px 0 0">Choose the format you want to save to this device.</p></div><button class="light" onclick="goHome()">← Home</button></div><div class="menu" style="margin-top:12px">
+<button onclick="downloadPDF()"><span class="ico">📄</span><strong>Save report as PDF</strong><small>Save a fixed-size A4 PDF copy of this report</small></button>
+<button onclick="downloadWord()"><span class="ico">📝</span><strong>Editable Word document (.doc)</strong><small>Open in Microsoft Word and edit report text, dates, findings and details</small></button>
+<button onclick="emailReport()"><span class="ico">✉️</span><strong>Email report to office</strong><small>Enter the recipient email address; attach the downloaded report in your email app</small></button>
+<button onclick="downloadBackup()"><span class="ico">💾</span><strong>Full backup</strong><small>Report data and photos in one file</small></button>
+<button onclick="document.getElementById('backupFile').click()"><span class="ico">📥</span><strong>Import / restore backup</strong><small>Merge examiner profiles and add reports without deleting existing reports</small></button>
+<input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+</div><div class="actions"><button class="light" onclick="goHome()">Back to menu</button></div></section>
+</main><div class="toast" id="toast"></div>
+<script>
+const DB='technorth-example-v2',STORE='reports',EXAMINERS='examiners';let db,dbPromise,currentId=null,photos=[null,null,null],signatureImage=null,profileSignature=null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+function toast(t){let e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
+function show(id){$$('.screen').forEach(s=>s.classList.remove('active'));$('#'+id).classList.add('active');window.scrollTo(0,0)}
+function goHome(){show('homeScreen')}
+function openDB(){if(db)return Promise.resolve();if(dbPromise)return dbPromise;dbPromise=new Promise((ok,no)=>{try{let r=indexedDB.open(DB,2);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'});if(!r.result.objectStoreNames.contains(EXAMINERS))r.result.createObjectStore(EXAMINERS,{keyPath:'id'})};r.onsuccess=()=>{db=r.result;db.onversionchange=()=>db.close();ok()};r.onerror=()=>{dbPromise=null;no(r.error||new Error('Could not open report storage'))};r.onblocked=()=>{dbPromise=null;no(new Error('Report storage is blocked by another open app tab'))}}catch(e){dbPromise=null;no(e)}});return dbPromise}
+function store(mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}
+function examinerStore(mode='readonly'){return db.transaction(EXAMINERS,mode).objectStore(EXAMINERS)}
+async function getExaminers(){await openDB();return new Promise((ok,no)=>{let q=examinerStore().getAll();q.onsuccess=()=>ok(q.result.sort((a,b)=>a.name.localeCompare(b.name)));q.onerror=()=>no(q.error)})}
+async function putExaminer(e){await openDB();return new Promise((ok,no)=>{let q=examinerStore('readwrite').put(e);q.onsuccess=()=>ok(e);q.onerror=()=>no(q.error)})}
+async function deleteExaminer(idv){await openDB();return new Promise((ok,no)=>{let q=examinerStore('readwrite').delete(idv);q.onsuccess=ok;q.onerror=()=>no(q.error)})}
+async function getAll(){await openDB();return new Promise((ok,no)=>{let r=store().getAll();r.onsuccess=()=>ok(r.result.sort((a,b)=>b.updated-a.updated));r.onerror=()=>no(r.error)})}
+async function getOne(id){await openDB();return new Promise((ok,no)=>{let r=store().get(id);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function put(r){await openDB();return new Promise((ok,no)=>{let q=store('readwrite').put(r);q.onsuccess=ok;q.onerror=()=>no(q.error)})}
+function fields(){let d={};$$('[data-key]').forEach(e=>d[e.dataset.key]=e.value);d.status=$('input[name=status]:checked')?.value||'Acceptable';return d}
+function addOneYear(iso){if(!iso)return '';const parts=iso.split('-').map(Number);if(parts.length!==3||parts.some(n=>!Number.isFinite(n)))return '';const y=parts[0]+1,m=parts[1]-1,day=parts[2],lastDay=new Date(y,m+1,0).getDate();return String(y).padStart(4,'0')+'-'+String(m+1).padStart(2,'0')+'-'+String(Math.min(day,lastDay)).padStart(2,'0')}
+function syncNextInspectionDate(){const date=$('[data-key="date"]'),next=$('[data-key="nextDate"]');if(date&&next)next.value=addOneYear(date.value)}
+$('[data-key="date"]').addEventListener('change',syncNextInspectionDate);
+function fitSignatureFields(){$$('.signature textarea').forEach(el=>{el.style.height='auto';const max=66;el.style.height=Math.min(Math.max(30,el.scrollHeight),max)+'px';el.scrollTop=0})}
+$$('.signature textarea').forEach(el=>el.addEventListener('input',fitSignatureFields));
+function apply(d){$$('[data-key]').forEach(e=>{if(d[e.dataset.key]!==undefined)e.value=d[e.dataset.key]});if(d.date)syncNextInspectionDate();let r=$(`input[name=status][value="${d.status||'Acceptable'}"]`);if(r)r.checked=true;fitSignatureFields()}
+function id(){return 'TN-'+Date.now().toString(36).toUpperCase()}
+function newReport(){currentId=null;photos=[null,null,null];signatureImage=null;clearSignature();$$('[data-key]').forEach(e=>{if(['surface','orientation','extent','quantity','material','nature','cleanPre','cleanPost','pole','strength','verification','light','examiner','qualification','results'].includes(e.dataset.key))return;e.value=''});$$('[data-key="date"]').forEach(e=>e.value=new Date().toISOString().slice(0,10));syncNextInspectionDate();$('input[name=status][value="Acceptable"]').checked=true;paintPhotos();$('#formHeading').textContent='New inspection report';fitSignatureFields();populateExaminerSelect();show('reportScreen')}
+async function saveReport(){try{await openDB();let d=fields();if(!d.reportNumber&&!d.customer&&!d.item&&!confirm('Report number and customer are blank. Save this draft anyway?'))return false;let r={id:currentId||id(),data:d,photos,signatureImage:signatureImage||null,title:(d.reportNumber||'Draft')+' — '+(d.customer||d.item||'Inspection'),updated:Date.now()};await put(r);currentId=r.id;$('#formHeading').textContent='Saved report';toast('Report saved on this device');return true}catch(e){console.error(e);alert('Could not save this report. Please keep the report open and try again. '+(e.message||''));return false}}
+function paintPhotos(){$$('.photo').forEach((b,i)=>{let img=b.querySelector('img'),file=b.querySelector('input'),plus=b.querySelector('.plus'),label=b.querySelector('.label'),sub=b.querySelector('.sub'),remove=b.querySelector('.remove');if(photos[i]){img.src=photos[i];img.style.display='block';plus.style.display=label.style.display=sub.style.display='none';remove.style.display='block'}else{img.removeAttribute('src');img.style.display='none';plus.style.display=label.style.display=sub.style.display='';remove.style.display='none'}})}
+function addPhoto(e,i){let f=e.target.files&&e.target.files[0];if(!f)return;let reader=new FileReader();reader.onload=()=>{let im=new Image();im.onload=()=>{let max=1600,w=im.width,h=im.height;if(w>max||h>max){let sc=Math.min(max/w,max/h);w=Math.round(w*sc);h=Math.round(h*sc)}let c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);photos[i]=c.toDataURL('image/jpeg',.82);paintPhotos();toast('Photo '+(i+1)+' added — save the report')} ;im.onerror=()=>{photos[i]=reader.result;paintPhotos()};im.src=reader.result};reader.readAsDataURL(f);e.target.value=''}
+function removePhoto(e,i){e.stopPropagation();photos[i]=null;paintPhotos()}
+async function showSaved(){let rs=await getAll();$('#savedList').innerHTML=rs.length?rs.map(r=>`<div class="saved-card"><div><b>${esc(r.title)}</b><small>${new Date(r.updated).toLocaleString()} · ${(r.photos||[]).filter(Boolean).length} photos</small></div><div><button onclick="openSaved('${r.id}')">Open</button> <button class="red" onclick="deleteSaved('${r.id}')">Delete</button></div></div>`).join(''):'<div class="empty">No saved reports yet.<br>Choose “New report” to start your first inspection.</div>';show('savedScreen')}
+async function openSaved(idv){try{let r=await getOne(idv);if(!r)return;currentId=r.id;apply(r.data||{});photos=r.photos||[null,null,null];signatureImage=r.signatureImage||null;paintPhotos();restoreSignature();$('#formHeading').textContent='Edit saved report';populateExaminerSelect();show('reportScreen')}catch(e){alert('Could not open this saved report. '+(e.message||''))}}
+async function deleteSaved(idv){if(!confirm('Delete this saved report and its photos from this device?'))return;await new Promise(ok=>{let q=store('readwrite').delete(idv);q.onsuccess=ok});if(currentId===idv)currentId=null;showSaved()}
+async function exportCurrent(){try{if($('#reportScreen').classList.contains('active')){let ok=await saveReport();if(!ok)return}else if(!currentId){show('reportScreen');toast('Open or create a report before exporting');return}show('exportScreen')}catch(e){alert('Could not prepare report for export. '+(e.message||''))}}
+let profileImageDraft=null;
+function showExaminers(){show('examinersScreen');renderExaminers().catch(e=>alert('Could not load examiner profiles. '+e.message))}
+function clearExaminerForm(){ $('#profileId').value='';$('#profileName').value='';$('#profileQualification').value='';$('#profileSignatureFile').value='';$('#profileSignaturePreview').style.display='none';$('#profileSignaturePreview').removeAttribute('src');profileImageDraft=null; }
+$('#profileSignatureFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){alert('Please choose an image file.');return}const rd=new FileReader();rd.onload=()=>{profileImageDraft=rd.result;const im=$('#profileSignaturePreview');im.src=profileImageDraft;im.style.display='block'};rd.readAsDataURL(f)});
+async function saveExaminerProfile(){const name=$('#profileName').value.trim(),qualification=$('#profileQualification').value.trim(),idv=$('#profileId').value||('EX-'+Date.now().toString(36).toUpperCase());if(!name){alert('Please enter the examiner name.');return}let existing=(await getExaminers()).find(x=>x.id===idv);const sig=profileImageDraft||existing?.signature||null;await putExaminer({id:idv,name,qualification,signature:sig,updated:Date.now()});clearExaminerForm();await renderExaminers();await populateExaminerSelect();toast('Examiner profile saved')}
+async function editExaminerProfile(idv){const e=(await getExaminers()).find(x=>x.id===idv);if(!e)return;$('#profileId').value=e.id;$('#profileName').value=e.name;$('#profileQualification').value=e.qualification||'';profileImageDraft=e.signature||null;$('#profileSignatureFile').value='';const im=$('#profileSignaturePreview');if(profileImageDraft){im.src=profileImageDraft;im.style.display='block'}else{im.removeAttribute('src');im.style.display='none'}window.scrollTo(0,0)}
+async function removeExaminerProfile(idv){if(!confirm('Delete this examiner profile? Existing saved reports will not be changed.'))return;await deleteExaminer(idv);await renderExaminers();await populateExaminerSelect()}
+async function renderExaminers(){const list=$('#examinerList'),items=await getExaminers();list.innerHTML=items.length?items.map(e=>`<div class="saved-card"><div><b>${esc(e.name)}</b><small>${esc(e.qualification||'No qualification entered')}${e.signature?' · Signature image saved':' · No signature image'}</small>${e.signature?`<img src="${e.signature}" alt="${esc(e.name)} signature" style="display:block;max-width:220px;max-height:65px;object-fit:contain;background:#fff;border:1px solid #d5dce2;margin-top:6px">`:''}</div><div><button onclick="editExaminerProfile('${e.id}')">Edit</button> <button class="red" onclick="removeExaminerProfile('${e.id}')">Delete</button></div></div>`).join(''):'<div class="empty">No examiner profiles saved yet.</div>'}
+async function populateExaminerSelect(){const sel=$('#examinerProfileSelect');if(!sel)return;const current=sel.value,items=await getExaminers();sel.innerHTML='<option value="">Choose a saved examiner…</option>'+items.map(e=>`<option value="${esc(e.id)}">${esc(e.name)}</option>`).join('');if(items.some(e=>e.id===current))sel.value=current}
+async function applyExaminerProfile(idv){if(!idv)return;const e=(await getExaminers()).find(x=>x.id===idv);if(!e)return;const n=$('[data-key="examiner"]'),q=$('[data-key="qualification"]');n.value=e.name;q.value=e.qualification||'';fitSignatureFields();if(e.signature){signatureImage=e.signature;restoreSignature()}else{clearSignature()}toast('Examiner details added to report')}
+function importSignature(event){const f=event.target.files&&event.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){alert('Please select a signature image.');return}const rd=new FileReader();rd.onload=()=>{signatureImage=rd.result;restoreSignature();toast('Signature image imported — save the report')};rd.readAsDataURL(f);event.target.value=''}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function name(){return (fields().reportNumber||'Tech-North-report').replace(/[^a-z0-9_-]/gi,'_')}
+function download(blob,n){let u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1800)}
+async function waitForReportAssets(sh){
+ // Wait for the report layout and embedded photos/signature to finish rendering before capture.
+ fitSignatureFields();
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+ const imgs=[...sh.querySelectorAll('img')].filter(im=>im.getAttribute('src'));
+ await Promise.all(imgs.map(im=>im.complete?Promise.resolve():new Promise(resolve=>{im.onload=resolve;im.onerror=resolve;setTimeout(resolve,4000)})));
+ if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+ await new Promise(resolve=>requestAnimationFrame(resolve));
+}
+async function captureReportCanvas(sh){
+ const canvas=await window.html2canvas(sh,{scale:2,backgroundColor:'#ffffff',useCORS:true,allowTaint:false,logging:false,width:794,height:1123,windowWidth:794,windowHeight:1123,scrollX:0,scrollY:0});
+ if(!canvas.width||!canvas.height)throw new Error('The report image was empty. Please reopen the report and try again.');
+ const ctx=canvas.getContext('2d');
+ if(!ctx)throw new Error('Could not prepare the report image.');
+ return canvas;
+}
+async function downloadPDF(){
+ const sh=document.querySelector('#reportSheet');
+ if(!sh){alert('Could not find the report page.');return}
+ if(typeof window.html2canvas!=='function'||!window.jspdf||!window.jspdf.jsPDF){alert('PDF export needs an internet connection to load the PDF tools. Connect to the internet and try again.');return}
+ let previousZoom='',previousTransform='';
+ try{
+  if($('#reportScreen').classList.contains('active')){const ok=await saveReport();if(!ok)return}
+  else if(!currentId){show('reportScreen');toast('Open or create a report before exporting');return}
+  show('reportScreen');
+  previousZoom=sh.style.zoom;previousTransform=sh.style.transform;
+  sh.style.zoom='1';sh.style.transform='none';sh.classList.add('pdf-export-mode');
+  await waitForReportAssets(sh);
+  const canvas=await captureReportCanvas(sh);
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+  pdf.addImage(canvas.toDataURL('image/jpeg',0.96),'JPEG',0,0,210,297,undefined,'FAST');
+  pdf.save(name()+'.pdf');
+  toast('A4 PDF saved');
+ }catch(e){console.error('Direct PDF export failed:',e);alert('Could not create the PDF. Please try again. '+(e.message||''))}
+ finally{sh.classList.remove('pdf-export-mode');sh.style.zoom=previousZoom;sh.style.transform=previousTransform;applyZoom()}
+}
+function dataUrlToBytes(dataUrl){const base64=dataUrl.split(',')[1];if(!base64)throw new Error('Could not encode the report image.');const raw=atob(base64);const out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
+async function downloadWord(forEmail=false,recipient=""){
+ // Export the report as editable HTML-based Word .doc (not a flattened page image).
+ const sh=document.querySelector('#reportSheet');
+ if(!sh){alert('Could not find the report page.');return}
+ if($('#reportScreen').classList.contains('active')){const ok=await saveReport();if(!ok)return}
+ else if(!currentId){show('reportScreen');toast('Open or create a report before exporting');return}
+ show('reportScreen');
+ try{
+  const clone=sh.cloneNode(true);
+  clone.querySelectorAll('.no-print,.signature-tools,.zoom-controls,.actions').forEach(el=>el.remove());
+  clone.querySelectorAll('input,textarea,select').forEach(el=>{
+   if(el.type==='radio'){
+    if(el.checked){const span=document.createElement('span');span.textContent=el.value;el.parentNode.replaceWith(span)}else el.parentNode.remove();
+   }else if(el.type==='file')el.remove();
+   else {
+    const span=document.createElement('span');
+    span.textContent=(el.tagName==='SELECT'?el.options[el.selectedIndex]?.text:el.value)||' ';
+    span.style.whiteSpace='pre-wrap';span.style.overflowWrap='anywhere';span.style.display='block';span.style.minHeight='14px';span.style.padding='3px';
+    el.replaceWith(span);
+   }
+  });
+  clone.querySelectorAll('.photo').forEach((photo,i)=>{
+   const img=photo.querySelector('img');
+   photo.style.cssText='height:125px;width:100%;border:1px solid #aebdca;text-align:center;vertical-align:middle;overflow:hidden;';
+   if(img&&img.src&&img.getAttribute('src')&&img.getAttribute('src')!==''){
+    img.style.cssText='display:block;width:100%;height:120px;object-fit:contain;';
+   }else{photo.textContent='Photo '+(i+1)+' (no image added)';}
+  });
+  clone.querySelectorAll('img').forEach(img=>{img.style.maxWidth='100%';});
+  const css=`body{font-family:Arial,sans-serif;color:#1c2933;font-size:9pt}#reportSheet{width:100%;padding:0;background:#fff}.report-head{width:100%;border-bottom:2px solid #2469a5;padding-bottom:8px}.logo{font-size:22pt;font-weight:bold;color:#2873b7}.report-title{font-size:12pt;font-weight:bold}.address{text-align:right;font-size:8pt}.meta,.fields,.signature,.photo-grid{width:100%;border-collapse:collapse}.field{border:1px solid #aebdca;min-height:24px}.field label{background:#e2edf6;font-weight:bold;font-size:8pt;padding:4px}.section{border:1px solid #aebdca;margin-top:7px;page-break-inside:avoid}.sectiontitle{background:#3479b3;color:white;font-weight:bold;text-align:center;padding:5px;font-size:9pt}.fields{display:table;width:100%}.fields .field{display:table-cell;width:50%;vertical-align:top}.fields .field label{display:block}.signature{display:table;width:100%;table-layout:fixed;margin-top:8px}.signature>div{display:table-cell;width:33%;border:1px solid #aebdca;padding:6px;vertical-align:top}.signature label{font-weight:bold;font-size:8pt}.photo-grid{display:table;width:100%;table-layout:fixed}.photo{display:table-cell;width:33%;vertical-align:middle;padding:4px}.result{padding:6px}.status{padding:5px;border:1px solid #aebdca}.status span{padding-right:18px}`;
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>Tech-North Inspection Report</title><style>'+css+'</style></head><body>'+clone.outerHTML+'
+<script>
+// Tech-North offline app support. Service workers require HTTPS (or localhost).
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Offline support could not be registered:', err)));
+}
+</script>
+</body></html>';
+  const blob=new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'});
+  const filename=name()+'.doc';
+  if(forEmail)return shareReportFile(blob,filename,recipient);
+  download(blob,filename);toast('Editable Word document saved');
+ }catch(e){console.error('Editable Word export failed:',e);alert('Could not create the editable Word document. Please try again. '+(e.message||''))}
+}
+async function emailReport(){
+ try{
+  if($('#reportScreen').classList.contains('active')){const ok=await saveReport();if(!ok)return}
+  if(!currentId){alert('Please open or create a report before emailing it.');return}
+  const recipient=prompt('Enter the email address you want to send this report to:');
+  if(recipient===null)return;
+  const email=recipient.trim();
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('Please enter a valid email address and try again.');return}
+  await downloadWord(true,email);
+ }catch(e){console.error(e);alert('Could not prepare the report for email. '+(e.message||''))}
+}
+async function shareReportFile(blob,filename,recipient){
+ const subject='Tech-North Inspection Report '+(fields().reportNumber||'');
+ const body='Please find attached the Tech-North Magnetic Particle Examination Report.\n\nRecipient: '+recipient+'\nReport: '+filename;
+ // Use Android's native share sheet so the report file can be attached to Gmail/Outlook directly.
+ const file=new File([blob],filename,{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+ if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+  try{
+   await navigator.share({files:[file],title:subject,text:body});
+   toast('Report shared. Choose your email app and check the recipient before sending.');
+   return;
+  }catch(e){
+   if(e && e.name==='AbortError')return;
+   console.error('Native file sharing failed:',e);
+  }
+ }
+ // Fallback for browsers that cannot share attachments: download the report and open an addressed draft.
+ download(blob,filename);
+ const mailBody=body+'\n\nYour browser cannot attach files automatically. Please attach the downloaded report before sending.';
+ window.location.href='mailto:'+encodeURIComponent(recipient)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(mailBody);
+ alert('The report has been downloaded and an email draft opened. If the report is not attached automatically, attach '+filename+' before sending.');
+}
+async function downloadBackup(){let rs=await getAll();if(currentId){let d=fields(),r={id:currentId,data:d,photos,signatureImage:signatureImage||null,title:(d.reportNumber||'Draft')+' — '+(d.customer||d.item||'Inspection'),updated:Date.now()};await put(r);rs=await getAll()}download(new Blob([JSON.stringify({app:'Tech-North',version:2,reports:rs,examiners:await getExaminers()},null,2)],{type:'application/json'}),'technorth-backup.json');toast('Backup downloaded')}
+async function importBackup(event){
+ const input=event.target, file=input.files&&input.files[0]; if(!file)return;
+ try{
+  const raw=JSON.parse(await file.text());
+  if(!raw||raw.app!=='Tech-North'||!Array.isArray(raw.reports)||!Array.isArray(raw.examiners))throw new Error('This is not a valid Tech-North full backup file.');
+  if(!confirm('Import this backup? Existing reports will not be replaced or deleted. New reports will be added, and matching examiner profiles will be updated.')){input.value='';return}
+  const existingReports=await getAll(), reportIds=new Set(existingReports.map(r=>String(r.id)));
+  let reportsAdded=0, reportsSkipped=0, profilesSaved=0;
+  for(const r of raw.reports){if(!r||r.id==null||!r.data){reportsSkipped++;continue}if(reportIds.has(String(r.id))){reportsSkipped++;continue}await put(r);reportIds.add(String(r.id));reportsAdded++}
+  const existingProfiles=await getExaminers(), profileIds=new Set(existingProfiles.map(e=>String(e.id)));
+  for(const e of raw.examiners){if(!e||!e.id||!e.name)continue;await putExaminer(e);profileIds.add(String(e.id));profilesSaved++}
+  await populateExaminerSelect();
+  alert('Backup import complete.\nReports added: '+reportsAdded+'\nExisting reports kept: '+reportsSkipped+'\nExaminer profiles imported/updated: '+profilesSaved+'\n\nYour existing reports were not deleted or overwritten.');
+  toast('Backup imported successfully');
+ }catch(err){alert('Could not import backup. '+(err&&err.message?err.message:'Please select a valid Tech-North backup JSON file.'))}
+ finally{input.value=''}
+}
+
+
+async function importWorkersSpreadsheet(event){
+ const input=event.target, file=input.files&&input.files[0];if(!file)return;
+ try{
+  let rows=[],embeddedSignatures=new Map();
+  const ext=(file.name.split('.').pop()||'').toLowerCase();
+  if(ext==='csv') rows=parseCSV(await file.text());
+  else {
+   if(!window.XLSX)await loadSheetJS();
+   const data=await file.arrayBuffer(), wb=XLSX.read(data,{type:'array',cellDates:false});
+   // Read every worksheet, not only the first one.
+   for(const sheetName of wb.SheetNames){
+    const sheet=wb.Sheets[sheetName]; if(!sheet)continue;
+    const sheetRows=XLSX.utils.sheet_to_json(sheet,{defval:'',raw:false});
+    if(sheetRows.length)rows.push(...sheetRows);
+   }
+   // Excel cell pictures are not returned by SheetJS rows. Try to extract embedded
+   // images from the .xlsx package and associate each image with its worksheet row.
+   if(ext==='xlsx'){
+    try{embeddedSignatures=await extractXlsxEmbeddedSignatures(file)}catch(imgErr){console.warn('Embedded Excel signatures could not be extracted:',imgErr)}
+   }
+  }
+  if(!rows.length)throw new Error('No worker rows were found. Make sure the first row has headings and the workers are listed below it.');
+  const key=k=>String(k||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  const find=(row,names)=>{for(const k of Object.keys(row)){if(names.includes(key(k)))return row[k]}return ''};
+  const imageFiles=[...($('#workerSignatureFiles').files||[])];
+  const images=new Map();
+  for(const f of imageFiles){const data=await fileAsDataURL(f);images.set(f.name.toLowerCase(),data);images.set(f.name.replace(/\.[^.]+$/,'').toLowerCase(),data)}
+  const existing=await getExaminers(), byName=new Map(existing.map(e=>[String(e.name).trim().toLowerCase(),e]));
+  let saved=0,skipped=0,noSig=0,qualificationMissing=0;
+  const maxImport=10;
+  for(let idx=0;idx<rows.length;idx++){
+   if(saved>=maxImport)break;
+   const row=rows[idx], vals=Object.values(row);
+   // Support common heading variations and fallback to columns A/B/C if headings differ.
+   const name=String(find(row,['name','workername','examinername','fullname','employee','employeename','workersname','examiner'])||vals[0]||'').trim();
+   const qualification=String(find(row,['qualification','qualifications','certification','certificate','level','examinerqualification','qualificationlevel','ndtqualification','certificationlevel'])||vals[1]||'').trim();
+   let sig=String(find(row,['signature','signatureimage','signaturefile','signaturefilename','signaturedata','signaturephoto','sign','signaturepicture'])||vals[2]||'').trim();
+   if(!name){skipped++;continue}
+   if(sig && /^data:image\//i.test(sig)){} else if(sig){const fileName=sig.split(/[\\/]/).pop().toLowerCase();sig=images.get(fileName)||images.get(fileName.replace(/\.[^.]+$/,''))||''}
+   // Row-index fallback is used when pictures are embedded in Excel rather than filenames.
+   if(!sig){const candidates=embeddedSignatures.get(idx+2)||embeddedSignatures.get(idx+1);if(candidates)sig=candidates}
+   const prev=byName.get(name.toLowerCase());
+   const profile={id:prev?.id||('EX-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,7)),name,qualification:qualification||prev?.qualification||'',signature:sig||prev?.signature||null,updated:Date.now()};
+   if(!profile.qualification)qualificationMissing++;
+   if(!profile.signature)noSig++;
+   await putExaminer(profile);byName.set(name.toLowerCase(),profile);saved++;
+  }
+  await renderExaminers();await populateExaminerSelect();
+  const extra=rows.filter(r=>String(Object.values(r)[0]||'').trim()).length>maxImport?'\nOnly the first 10 workers were imported.':'';
+  alert('Worker import complete.\nProfiles imported/updated: '+saved+' (maximum 10 per import)\nRows skipped (missing name): '+skipped+'\nProfiles without a qualification: '+qualificationMissing+'\nProfiles without a signature image: '+noSig+extra+'\n\nEmbedded pictures anchored in Excel column E are now extracted using Excel drawing namespaces. Check the signature thumbnails in the saved examiner list. If a profile still has no signature, select its image manually in Edit.');
+  toast('Worker profiles imported');
+ }catch(err){console.error(err);alert('Could not import workers. '+(err?.message||'Check the file format and column headings.'))}
+ finally{input.value=''}
+}
+function normalizeXlsxPath(path){
+ const parts=[];
+ for(const part of String(path||'').replace(/\\/g,'/').split('/')){
+  if(!part||part==='.')continue;
+  if(part==='..'){parts.pop();continue}
+  parts.push(part);
+ }
+ return parts.join('/');
+}
+async function extractXlsxEmbeddedSignatures(file){
+ if(!window.JSZip){await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';s.onload=resolve;s.onerror=()=>reject(new Error('Could not load Excel image reader'));document.head.appendChild(s)})}
+ const zip=await JSZip.loadAsync(file), out=new Map(), parser=new DOMParser();
+ const workbookFile=zip.file('xl/workbook.xml');if(!workbookFile)return out;
+ const workbook=parser.parseFromString(await workbookFile.async('text'),'application/xml');
+ const wbRelsFile=zip.file('xl/_rels/workbook.xml.rels');if(!wbRelsFile)return out;
+ const wbRels=parser.parseFromString(await wbRelsFile.async('text'),'application/xml');
+ const relTargets={};for(const r of [...wbRels.getElementsByTagName('Relationship')])relTargets[r.getAttribute('Id')]=r.getAttribute('Target');
+ const sheets=[...workbook.getElementsByTagName('sheet')];
+ for(let si=0;si<sheets.length;si++){
+  const rid=sheets[si].getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id')||sheets[si].getAttribute('r:id');
+  let target=relTargets[rid];if(!target)continue;target=target.replace(/^\//,'');if(!target.startsWith('xl/'))target='xl/'+target;
+  const sheetPath=target.replace(/\/[^/]+$/,'/'), sheetBase=target.split('/').pop();
+  const relPath=sheetPath+'_rels/'+sheetBase+'.rels', sheetRelFile=zip.file(relPath);if(!sheetRelFile)continue;
+  const sheetRel=parser.parseFromString(await sheetRelFile.async('text'),'application/xml');let drawingTarget='';
+  for(const r of [...sheetRel.getElementsByTagName('Relationship')])if((r.getAttribute('Type')||'').endsWith('/drawing'))drawingTarget=r.getAttribute('Target');
+  if(!drawingTarget)continue;
+  // Resolve relative OOXML paths such as ../drawings/drawing1.xml before looking
+  // them up in the ZIP package. Excel commonly stores drawing targets this way.
+  let drawingPath=drawingTarget.startsWith('/')?drawingTarget.replace(/^\//,''):sheetPath+drawingTarget;
+  drawingPath=normalizeXlsxPath(drawingPath);
+  const drawingFile=zip.file(drawingPath);if(!drawingFile)continue;
+  const drawing=parser.parseFromString(await drawingFile.async('text'),'application/xml');
+  const drawingRelPath=drawingPath.replace(/\/[^/]+$/,'/_rels/')+drawingPath.split('/').pop()+'.rels';
+  const drawingRelFile=zip.file(drawingRelPath);if(!drawingRelFile)continue;
+  const dr=parser.parseFromString(await drawingRelFile.async('text'),'application/xml'), drMap={};
+  for(const r of [...dr.getElementsByTagName('Relationship')])drMap[r.getAttribute('Id')]=r.getAttribute('Target');
+  const xdrNs='http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing';
+  // Excel uses namespace-prefixed tags (xdr:twoCellAnchor, xdr:from, etc.);
+  // getElementsByTagName('twoCellAnchor') misses those nodes in many browsers.
+  const anchors=[...drawing.getElementsByTagNameNS(xdrNs,'twoCellAnchor'),...drawing.getElementsByTagNameNS(xdrNs,'oneCellAnchor')];
+  for(const anchor of anchors){
+   const from=anchor.getElementsByTagNameNS(xdrNs,'from')[0], blip=anchor.getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/main','blip')[0];if(!from||!blip)continue;
+   const rowNode=from.getElementsByTagNameNS(xdrNs,'row')[0], colNode=from.getElementsByTagNameNS(xdrNs,'col')[0], ridImg=blip.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','embed')||blip.getAttribute('r:embed');if(!rowNode||!ridImg)continue;
+   // In this workbook, signatures are anchored in column E (zero-based column 4).
+   // Ignore other pictures, such as certificate scans in columns F/G.
+   if(colNode && Number(colNode.textContent)!==4)continue;
+   const rowNum=Number(rowNode.textContent)+1, imgTarget=drMap[ridImg];if(!imgTarget)continue;
+   const imgPath=normalizeXlsxPath(imgTarget.startsWith('/')?imgTarget.replace(/^\//,''):(drawingPath.replace(/\/[^/]+$/,'/')+imgTarget));
+   const imgFile=zip.file(imgPath);if(!imgFile)continue;
+   const base64=await imgFile.async('base64'), ext=(imgPath.split('.').pop()||'png').toLowerCase(), mime=ext==='jpg'||ext==='jpeg'?'image/jpeg':ext==='gif'?'image/gif':ext==='webp'?'image/webp':'image/png';
+   // First image anchored on a worker's row is treated as that worker's signature.
+   if(!out.has(rowNum))out.set(rowNum,'data:'+mime+';base64,'+base64);
+  }
+ }
+ return out;
+}
+function fileAsDataURL(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('Could not read signature image '+file.name));r.readAsDataURL(file)})}
+function loadSheetJS(){return new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';script.onload=resolve;script.onerror=()=>reject(new Error('Excel .xlsx import needs an internet connection on first use. You can alternatively save the Excel sheet as CSV and import that.'));document.head.appendChild(script)})}
+function parseCSV(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'&&quoted&&text[i+1]==='"'){cell+='"';i++}else if(c==='"'){quoted=!quoted}else if(c===','&&!quoted){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>String(v).trim()))rows.push(row);row=[];cell=''}else cell+=c}if(cell.length||row.length){row.push(cell);rows.push(row)}if(!rows.length)return [];const headers=rows.shift().map(h=>String(h).replace(/^\uFEFF/,'').trim());return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]||''])))}
+
+(async()=>{await openDB();await populateExaminerSelect()})().catch(e=>{console.error(e);toast('Storage not ready. Try reloading the app.')});
+
+let zoomLevel=1;
+function clearSignature(){signatureImage=null;const im=$('#reportSignaturePreview');if(im){im.removeAttribute('src');im.style.display='none'}}
+function restoreSignature(){const im=$('#reportSignaturePreview');if(!im)return;if(signatureImage){im.src=signatureImage;im.style.display='block'}else{im.removeAttribute('src');im.style.display='none'}}
+
+function applyZoom(){
+ const sh=document.querySelector('#reportSheet');
+ if(sh){
+  const available=Math.max(240,(document.querySelector('main')?.clientWidth||window.innerWidth)-4);
+  const a4Width=793.7; // 210 mm at CSS 96 dpi
+  const fit=Math.min(1,available/a4Width);
+  sh.style.zoom=String(fit*zoomLevel);
+  $('#zoomValue').textContent=Math.round(fit*zoomLevel*100)+'%';
+ }
+}
+function zoomIn(){zoomLevel=Math.min(1.8,Math.round((zoomLevel+0.1)*10)/10);applyZoom()}
+function zoomOut(){zoomLevel=Math.max(0.6,Math.round((zoomLevel-0.1)*10)/10);applyZoom()}
+function zoomReset(){zoomLevel=1;applyZoom()}
+window.addEventListener('resize',()=>{if(document.querySelector('#reportScreen')?.classList.contains('active'))applyZoom()});
+
+</script>
+
+<script>
+// Tech-North offline app support. Service workers require HTTPS (or localhost).
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Offline support could not be registered:', err)));
+}
+</script>
+</body></html>
