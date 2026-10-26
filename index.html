@@ -283,14 +283,7 @@ async function downloadWord(forEmail=false,recipient=""){
   });
   clone.querySelectorAll('img').forEach(img=>{img.style.maxWidth='100%';});
   const css=`body{font-family:Arial,sans-serif;color:#1c2933;font-size:9pt}#reportSheet{width:100%;padding:0;background:#fff}.report-head{width:100%;border-bottom:2px solid #2469a5;padding-bottom:8px}.logo{font-size:22pt;font-weight:bold;color:#2873b7}.report-title{font-size:12pt;font-weight:bold}.address{text-align:right;font-size:8pt}.meta,.fields,.signature,.photo-grid{width:100%;border-collapse:collapse}.field{border:1px solid #aebdca;min-height:24px}.field label{background:#e2edf6;font-weight:bold;font-size:8pt;padding:4px}.section{border:1px solid #aebdca;margin-top:7px;page-break-inside:avoid}.sectiontitle{background:#3479b3;color:white;font-weight:bold;text-align:center;padding:5px;font-size:9pt}.fields{display:table;width:100%}.fields .field{display:table-cell;width:50%;vertical-align:top}.fields .field label{display:block}.signature{display:table;width:100%;table-layout:fixed;margin-top:8px}.signature>div{display:table-cell;width:33%;border:1px solid #aebdca;padding:6px;vertical-align:top}.signature label{font-weight:bold;font-size:8pt}.photo-grid{display:table;width:100%;table-layout:fixed}.photo{display:table-cell;width:33%;vertical-align:middle;padding:4px}.result{padding:6px}.status{padding:5px;border:1px solid #aebdca}.status span{padding-right:18px}`;
-  const html='<!doctype html><html><head><meta charset="utf-8"><title>Tech-North Inspection Report</title><style>'+css+'</style></head><body>'+clone.outerHTML+'
-<script>
-// Tech-North offline app support. Service workers require HTTPS (or localhost).
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Offline support could not be registered:', err)));
-}
-</script>
-</body></html>';
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>Tech-North Inspection Report</title><style>'+css+'</style></head><body>'+clone.outerHTML+'</body></html>';
   const blob=new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'});
   const filename=name()+'.doc';
   if(forEmail)return shareReportFile(blob,filename,recipient);
@@ -485,7 +478,6 @@ function zoomReset(){zoomLevel=1;applyZoom()}
 window.addEventListener('resize',()=>{if(document.querySelector('#reportScreen')?.classList.contains('active'))applyZoom()});
 
 </script>
-
 <script>
 // Tech-North offline app support. Service workers require HTTPS (or localhost).
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
