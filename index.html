@@ -6,6 +6,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 :root{--blue:#2469a5;--blue-dark:#174a78;--pale:#eaf2f9;--line:#b8c6d3;--ink:#1c2933;--bg:#f3f6f9}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--ink)}
@@ -162,6 +163,7 @@ main{max-width:1120px}
 <section id="savedScreen" class="screen"><div class="toprow"><div><h1>Reports saved</h1><p class="hint" style="margin:3px 0 0">Saved reports on this device.</p></div><button class="light" onclick="goHome()">← Home</button></div><div id="savedList" class="saved-list"></div></section>
 <section id="exportScreen" class="screen"><div class="toprow"><div><h1>Export report</h1><p class="hint" style="margin:3px 0 0">Choose the format you want to save to this device.</p></div><button class="light" onclick="goHome()">← Home</button></div><div class="menu" style="margin-top:12px">
 <button onclick="downloadPDF()"><span class="ico">📄</span><strong>Save report as PDF</strong><small>Save a fixed-size A4 PDF copy of this report</small></button>
+<button onclick="downloadExcel()"><span class="ico">📊</span><strong>Excel report (.xlsx)</strong><small>Excel copy with the same report layout, photos and an editable data sheet</small></button>
 <button onclick="downloadWord()"><span class="ico">📝</span><strong>Editable Word document (.doc)</strong><small>Open in Microsoft Word and edit report text, dates, findings and details</small></button>
 <button onclick="emailReport()"><span class="ico">✉️</span><strong>Email report to office</strong><small>Enter the recipient email address; attach the downloaded report in your email app</small></button>
 <button onclick="downloadBackup()"><span class="ico">💾</span><strong>Full backup</strong><small>Report data and photos in one file</small></button>
@@ -250,6 +252,57 @@ async function downloadPDF(){
   pdf.save(name()+'.pdf');
   toast('A4 PDF saved');
  }catch(e){console.error('Direct PDF export failed:',e);alert('Could not create the PDF. Please try again. '+(e.message||''))}
+ finally{sh.classList.remove('pdf-export-mode');sh.style.zoom=previousZoom;sh.style.transform=previousTransform;applyZoom()}
+}
+async function downloadExcel(){
+ const sh=document.querySelector('#reportSheet');
+ if(!sh){alert('Could not find the report page.');return}
+ if($('#reportScreen').classList.contains('active')){const ok=await saveReport();if(!ok)return}
+ else if(!currentId){show('reportScreen');toast('Open or create a report before exporting');return}
+ if(!window.ExcelJS){alert('Excel export needs an internet connection to load the Excel tools. Connect to the internet and try again.');return}
+ let previousZoom=sh.style.zoom,previousTransform=sh.style.transform;
+ try{
+  show('reportScreen');
+  sh.style.zoom='1';sh.style.transform='none';sh.classList.add('pdf-export-mode');
+  await waitForReportAssets(sh);
+  const canvas=await captureReportCanvas(sh);
+  const workbook=new ExcelJS.Workbook();
+  workbook.creator='Tech-North Reports';
+  workbook.subject='Inspection report';
+  workbook.title='Tech-North Inspection Report';
+  workbook.created=new Date();
+  const page=workbook.addWorksheet('Report');
+  page.views=[{showGridLines:false,zoomScale:85}];
+  for(let i=1;i<=12;i++)page.getColumn(i).width=10;
+  for(let i=1;i<=60;i++)page.getRow(i).height=18;
+  const imageId=workbook.addImage({base64:canvas.toDataURL('image/png'),extension:'png'});
+  page.addImage(imageId,{tl:{col:0,row:0},ext:{width:794,height:1123}});
+  page.pageSetup={paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1};
+  page.properties.defaultRowHeight=18;
+  // Keep every report value editable in a companion worksheet.
+  const dataSheet=workbook.addWorksheet('Editable report data');
+  dataSheet.columns=[{header:'Report field',key:'field',width:34},{header:'Value',key:'value',width:90}];
+  dataSheet.getRow(1).font={bold:true,color:{argb:'FFFFFFFF'}};
+  dataSheet.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF3479B3'}};
+  dataSheet.views=[{state:'frozen',ySplit:1,showGridLines:false}];
+  const seen=new Set();
+  sh.querySelectorAll('[data-key]').forEach(el=>{
+   const key=el.dataset.key;
+   if(!key||seen.has(key))return;seen.add(key);
+   const field=el.closest('.field');
+   const label=field?.querySelector('label')?.textContent?.trim()||key;
+   const value=el.type==='radio'?(sh.querySelector('input[name="'+el.name+'"]:checked')?.value||''):(el.value||'');
+   dataSheet.addRow({field:label,value});
+  });
+  const status=sh.querySelector('input[name="status"]:checked')?.value;
+  if(status)dataSheet.addRow({field:'Examination status',value:status});
+  dataSheet.getColumn(1).font={bold:true,color:{argb:'FF174A78'}};
+  dataSheet.eachRow(row=>{row.eachCell(cell=>{cell.alignment={vertical:'top',wrapText:true};cell.border={bottom:{style:'hair',color:{argb:'FFD5DEE6'}}}})});
+  dataSheet.autoFilter={from:'A1',to:'B'+dataSheet.rowCount};
+  const buffer=await workbook.xlsx.writeBuffer();
+  download(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),name()+'.xlsx');
+  toast('Excel report saved');
+ }catch(e){console.error('Excel export failed:',e);alert('Could not create the Excel report. Please try again. '+(e.message||''))}
  finally{sh.classList.remove('pdf-export-mode');sh.style.zoom=previousZoom;sh.style.transform=previousTransform;applyZoom()}
 }
 function dataUrlToBytes(dataUrl){const base64=dataUrl.split(',')[1];if(!base64)throw new Error('Could not encode the report image.');const raw=atob(base64);const out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
