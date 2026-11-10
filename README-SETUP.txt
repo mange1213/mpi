@@ -1,28 +1,24 @@
 TECH-NORTH REPORTS — INSTALLABLE APP
 
-This package is a Progressive Web App (PWA). It installs from a secure website and runs in its own app window. There is no native Play Store, App Store, or Windows installer package in this build.
+This package is a Progressive Web App (PWA). Android Chrome can install it as an app when the site is served over HTTPS and its manifest, icons, and service worker are available.
 
-PUBLISHING THE APP
-1. Upload the complete contents of this folder to the root of a static website that supports HTTPS. Keep index.html, manifest.webmanifest, service-worker.js, and the icons folder together. GitHub Pages, Netlify, and other HTTPS static hosts can serve this package.
-2. Open the HTTPS address once while online. Allow it to finish loading so the app shell and its libraries can be cached. The in-app Install app button launches the browser prompt when available; otherwise it explains where to find the browser install option.
-3. Install from the browser using the instructions below. Use the same site address for future updates.
+PUBLISH TO GITHUB PAGES
+1. Upload every item from this ZIP directly into the root of the GitHub repository used for the site. Do not put the files inside an extra mpi-main or tech-north-app folder. Keep index.html, manifest.webmanifest, service-worker.js, and icons/ together.
+2. Commit the files and wait for GitHub Pages to finish publishing.
+3. Check that https://mange1213.github.io/mpi/icons/icon-192.png opens as an image, not a 404 page.
+4. Open https://mange1213.github.io/mpi/ in Chrome while online and reload once so the updated app shell and cache can install.
 
 ANDROID PHONE OR TABLET (Chrome)
-1. Open the HTTPS site in Chrome and wait for it to load.
-2. Open the three-dot menu and choose Install app (or Add to Home screen), then confirm.
-3. Open Tech-North from the home screen/app list. It can work offline after its first successful online load.
+1. Open the HTTPS site directly in Chrome.
+2. Open the three-dot menu and choose Install app. Confirm the installation.
+3. Open Tech-North from the device's app list or home screen. If Chrome offers only Add to Home screen / Create shortcut, the site is still not being recognized as installable; check the icon URL and wait for the latest GitHub Pages deployment.
 
-IPHONE OR IPAD (Safari)
-1. Open the HTTPS site in Safari and wait for it to load.
-2. Tap Share, then Add to Home Screen, and confirm.
-3. Open Tech-North from the Home Screen. iOS/iPadOS requires the Safari share-sheet flow; it does not use Chrome's Android-style install prompt.
+IPHONE OR IPAD
+Open the HTTPS site, tap Share, then Add to Home Screen. The iOS home-screen flow is controlled by the browser and operating system.
 
 WINDOWS, macOS, OR LINUX COMPUTER
-1. Open the HTTPS site in a current Chrome or Edge browser.
-2. Choose the install icon in the address bar, or use the browser menu's Install app option, then confirm.
-3. Launch Tech-North from the desktop, Start menu, or browser apps list.
+Open the HTTPS site in a current Chrome or Edge browser and choose Install app from the address-bar icon or browser menu.
 
 OFFLINE AND DATA NOTES
 - Open the installed app once while online before using it offline. PDF export and Excel import rely on libraries that must be cached on a successful online visit; Excel import may fetch its reader the first time.
 - Email sending needs a connection. Reports and examiner profiles are stored in that browser on that device and do not automatically sync to other devices. Use Full backup regularly to move data.
-- Test report creation, photo capture, saving, and exports on each device before relying on offline use in the field.
