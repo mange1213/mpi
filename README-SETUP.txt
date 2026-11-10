@@ -4,7 +4,7 @@ This package is a Progressive Web App (PWA). It installs from a secure website a
 
 PUBLISHING THE APP
 1. Upload the complete contents of this folder to the root of a static website that supports HTTPS. Keep index.html, manifest.webmanifest, service-worker.js, and the icons folder together. GitHub Pages, Netlify, and other HTTPS static hosts can serve this package.
-2. Open the HTTPS address once while online. Allow it to finish loading so the app shell and its libraries can be cached.
+2. Open the HTTPS address once while online. Allow it to finish loading so the app shell and its libraries can be cached. The in-app Install app button launches the browser prompt when available; otherwise it explains where to find the browser install option.
 3. Install from the browser using the instructions below. Use the same site address for future updates.
 
 ANDROID PHONE OR TABLET (Chrome)

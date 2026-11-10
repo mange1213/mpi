@@ -110,7 +110,7 @@ main{max-width:1120px}
 }
 </style></head>
 <body>
-<header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div></header>
+<header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div><button id="installAppBtn" class="light" type="button" onclick="installApp()" style="margin-left:auto;white-space:nowrap">Install app</button></header>
 <main>
 <section id="homeScreen" class="screen active">
 <h1>Inspection reports</h1><p class="hint">Create a report on site, save it on this device, or export a copy to your phone or tablet.</p>
@@ -532,6 +532,32 @@ window.addEventListener('resize',()=>{if(document.querySelector('#reportScreen')
 
 </script>
 <script>
+// Show a working install action where the browser supports PWA installation.
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  const button = document.getElementById('installAppBtn');
+  if (button) button.textContent = 'Install app';
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const button = document.getElementById('installAppBtn');
+  if (button) { button.textContent = 'App installed'; button.disabled = true; }
+});
+async function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    return;
+  }
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const help = isIOS
+    ? 'To install on iPhone or iPad: open this site in Safari, tap Share, then choose Add to Home Screen.'
+    : 'To install: open this site from its HTTPS address in Chrome or Edge, then choose Install app from the browser menu or address-bar install icon. If that option is missing, reload the site once while online and check that it is not already installed.';
+  alert(help);
+}
 // Tech-North offline app support. Service workers require HTTPS (or localhost).
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Offline support could not be registered:', err)));
