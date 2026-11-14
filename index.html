@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#2469a5"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Tech-North"><link rel="apple-touch-icon" href="./icons/icon-192.png"><title>Tech-North Reports</title><link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#2469a5"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Tech-North"><title>Tech-North Reports</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"><link rel="apple-touch-icon" href="./icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -11,6 +11,9 @@
 :root{--blue:#2469a5;--blue-dark:#174a78;--pale:#eaf2f9;--line:#b8c6d3;--ink:#1c2933;--bg:#f3f6f9}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--ink)}
 header{background:var(--blue);color:white;padding:18px 16px;display:flex;align-items:center;gap:12px}
+#installAppBtn{margin-left:auto;white-space:nowrap;background:#fff;color:#174a78;border:1px solid #d9e8f5;padding:10px 13px}
+#installAppBtn[hidden]{display:none}
+@media(max-width:420px){header{padding:13px 10px}.logo{font-size:21px}#installAppBtn{font-size:12px;padding:9px 10px}}
 .logo{font-weight:900;font-size:25px;font-style:italic;letter-spacing:-1px}.tag{font-size:11px;font-weight:bold;margin-top:3px}
 main{max-width:960px;margin:22px auto;padding:0 14px 40px}.screen{display:none}.screen.active{display:block}
 h1{font-size:22px;margin:0 0 7px}p.hint{color:#607180;margin:0 0 18px;line-height:1.45}
@@ -110,7 +113,7 @@ main{max-width:1120px}
 }
 </style></head>
 <body>
-<header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div><button id="installAppBtn" class="light" type="button" onclick="installApp()" style="margin-left:auto;white-space:nowrap">Install app</button></header>
+<header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div><button id="installAppBtn" type="button" hidden>＋ Install App</button></header>
 <main>
 <section id="homeScreen" class="screen active">
 <h1>Inspection reports</h1><p class="hint">Create a report on site, save it on this device, or export a copy to your phone or tablet.</p>
@@ -532,32 +535,38 @@ window.addEventListener('resize',()=>{if(document.querySelector('#reportScreen')
 
 </script>
 <script>
-// Show a working install action where the browser supports PWA installation.
-let deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', event => {
-  event.preventDefault();
-  deferredInstallPrompt = event;
-  const button = document.getElementById('installAppBtn');
-  if (button) button.textContent = 'Install app';
-});
-window.addEventListener('appinstalled', () => {
-  deferredInstallPrompt = null;
-  const button = document.getElementById('installAppBtn');
-  if (button) { button.textContent = 'App installed'; button.disabled = true; }
-});
-async function installApp() {
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    return;
-  }
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const help = isIOS
-    ? 'To install on iPhone or iPad: open this site in Safari, tap Share, then choose Add to Home Screen.'
-    : 'To install: open this site from its HTTPS address in Chrome or Edge, then choose Install app from the browser menu or address-bar install icon. If that option is missing, reload the site once while online and check that it is not already installed.';
-  alert(help);
-}
+// Android/Chrome installation support. The app remains fully usable if installation is unavailable.
+(() => {
+  let installPrompt = null;
+  const installButton = document.getElementById('installAppBtn');
+  if (!installButton) return;
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (isStandalone()) return;
+  installButton.hidden = false;
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    installPrompt = event;
+    installButton.hidden = false;
+  });
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    installButton.hidden = true;
+    if (typeof toast === 'function') toast('Tech-North app installed successfully.');
+  });
+  installButton.addEventListener('click', async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') installButton.hidden = true;
+      installPrompt = null;
+      return;
+    }
+    if (typeof toast === 'function') toast('To install: open Chrome menu ⋮ and choose Install app or Add to Home screen.');
+    else alert('To install: open Chrome menu ⋮ and choose Install app or Add to Home screen.');
+  });
+})();
+</script>
+<script>
 // Tech-North offline app support. Service workers require HTTPS (or localhost).
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Offline support could not be registered:', err)));

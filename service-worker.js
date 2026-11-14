@@ -1,7 +1,7 @@
 const CACHE_NAME = 'technorth-offline-v2';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest',
-  './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png'
+  './icon-192.png', './icon-512.png', './icon-512-maskable.png'
 ];
 // These libraries power PDF export and spreadsheet import. Cache them while online
 // so the app can still use them in the field without a connection.
