@@ -38,8 +38,8 @@ input:focus,textarea:focus{background:#fffbea;box-shadow:inset 0 0 0 2px #f0c85a
 .photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px}
 .photo{height:155px;min-height:155px;max-height:155px;border:2px dashed #9eafbd;border-radius:7px;background:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;text-align:center;flex:0 0 auto}
 .photo img{display:none;width:100%;height:155px;max-height:155px;flex:0 0 155px;object-fit:contain;background:white}.photo .plus{font-size:29px;color:var(--blue)}.photo .label{font-size:12px;font-weight:bold;margin:4px}.photo .sub{font-size:10px;color:#607180;padding:0 4px 4px}.photo input{display:none}
-.photo .photo-actions{display:flex;flex-direction:column;gap:5px;width:90%;padding:4px}
-.photo .photo-actions button{font-size:10px;padding:6px 4px;line-height:1.1;white-space:nowrap}
+.photo .photo-actions{position:absolute;left:5%;bottom:5px;display:flex;flex-direction:row;gap:5px;width:90%;padding:0;z-index:1}
+.photo .photo-actions button{flex:1;min-width:0;font-size:9px;padding:5px 3px;line-height:1.1;white-space:nowrap;border-radius:4px}
 .photo .photo-actions button:first-child{background:var(--blue);color:#fff}
 .photo .photo-actions button:last-child{background:#e8eef3;color:#263746;border:1px solid #b8c6d1}
 .photo .remove{position:absolute;right:4px;top:4px;padding:5px 7px;font-size:10px;display:none;z-index:2}
@@ -50,6 +50,25 @@ input:focus,textarea:focus{background:#fffbea;box-shadow:inset 0 0 0 2px #f0c85a
 @page{size:210mm 297mm;margin:0}
 .pdf-export-mode .photo input,.pdf-export-mode .photo .plus,.pdf-export-mode .photo .label,.pdf-export-mode .photo .sub,.pdf-export-mode .photo .remove,.pdf-export-mode .signature-tools,.pdf-export-mode .zoom-controls,.pdf-export-mode .actions{display:none!important}
 .pdf-export-mode .no-print{display:none!important}
+/* Keep the exported inspection report to one A4 page. */
+.pdf-export-mode #reportSheet{width:210mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;overflow:hidden!important;padding:8mm!important;box-sizing:border-box!important}
+.pdf-export-mode .report-head{padding-bottom:5px!important}
+.pdf-export-mode .meta{margin-bottom:5px!important}
+.pdf-export-mode .section{margin-top:5px!important;break-inside:avoid!important;page-break-inside:avoid!important}
+.pdf-export-mode .sectiontitle{padding:4px!important;font-size:9px!important}
+.pdf-export-mode .field{min-height:22px!important}
+.pdf-export-mode .field label,.pdf-export-mode .field input,.pdf-export-mode .field select{font-size:8px!important;padding:3px 4px!important}
+.pdf-export-mode .result{padding:5px!important}
+.pdf-export-mode .result textarea{height:40px!important;min-height:40px!important}
+.pdf-export-mode .status{margin-top:4px!important}
+.pdf-export-mode .status label{padding:5px!important;font-size:8px!important}
+.pdf-export-mode .photo-grid{padding:5px 3px!important;gap:8px!important}
+.pdf-export-mode .photo{height:125px!important;min-height:125px!important;max-height:125px!important}
+.pdf-export-mode .photo img{height:125px!important;min-height:125px!important;max-height:125px!important;flex-basis:125px!important}
+.pdf-export-mode .signature{margin-top:5px!important}
+.pdf-export-mode .signature>div{padding:4px!important}
+.pdf-export-mode .signature label{font-size:8px!important}
+.pdf-export-mode .signature textarea{min-height:26px!important;max-height:48px!important;font-size:8px!important}
 .pdf-export-mode .photo{height:145px!important;min-height:145px!important;max-height:145px!important;border:1px solid #aebdca!important;overflow:hidden!important}
 .pdf-export-mode .photo img{display:block!important;width:100%!important;height:145px!important;max-height:145px!important;object-fit:contain!important}
 #reportSheet{box-sizing:border-box;width:210mm;min-height:297mm;margin:0 auto;padding:10mm;background:#fff}
@@ -57,7 +76,7 @@ input:focus,textarea:focus{background:#fffbea;box-shadow:inset 0 0 0 2px #f0c85a
 .signature-tools{display:flex;gap:6px;align-items:center;margin-top:4px}
 .signature-tools button{font-size:10px;padding:5px 8px}
 @media(max-width:650px){#reportSheet{width:210mm;min-height:297mm}.signature-pad{height:90px}}
-@media print{body{background:white}header,.no-print,.toast{display:none!important}main{padding:0;margin:0;max-width:none}.screen{display:none!important}#reportScreen{display:block!important}.sheet{box-shadow:none;border:0;padding:0}.photo input,.photo .plus,.photo .label,.photo .sub,.photo .remove{display:none!important}.photo img{display:block!important;height:110px}.photo{min-height:110px;border:1px solid #aaa}.section{break-inside:avoid}.field{min-height:25px}.field label{font-size:9px;padding:4px}.field input{font-size:9px;padding:4px}.sectiontitle{padding:5px}.result textarea{min-height:35px}.report-title{font-size:13px}}
+@media print{body{background:white}header,.no-print,.toast{display:none!important}main{padding:0;margin:0;max-width:none}.screen{display:none!important}#reportScreen{display:block!important}.sheet{box-shadow:none;border:0;padding:0}.photo input,.photo .plus,.photo .label,.photo .sub,.photo .remove,.photo .photo-actions{display:none!important}.photo img{display:block!important;height:110px}.photo{min-height:110px;border:1px solid #aaa}.section{break-inside:avoid}.field{min-height:25px}.field label{font-size:9px;padding:4px}.field input{font-size:9px;padding:4px}.sectiontitle{padding:5px}.result textarea{min-height:35px}.report-title{font-size:13px}}
 
 /* Closer match to the supplied Tech-North one-page report */
 main{max-width:1120px}
@@ -111,10 +130,18 @@ main{max-width:1120px}
   .photo-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
   .photo{height:110px!important;min-height:110px!important;max-height:110px!important}
   .photo img{height:110px!important;min-height:110px!important;max-height:110px!important;width:100%!important;flex:0 0 110px!important}
-  .photo input,.photo .plus,.photo .label,.photo .sub,.photo .remove{display:none!important}
+  .photo input,.photo .plus,.photo .label,.photo .sub,.photo .remove,.photo .photo-actions{display:none!important}
   .photo img{display:block!important;object-fit:contain}
   .zoom-controls{display:none!important}
 }
+
+/* Match the supplied reference layout in the three upper information tables only. */
+.customer-fields .field,.component-fields .field,.equipment-fields .field{min-height:25px;border-top:1px solid #aebdca}
+.customer-fields .field label,.component-fields .field label,.equipment-fields .field label{font-size:9px;padding:4px 5px;background:#e2edf6}
+.customer-fields .field input,.component-fields .field input,.equipment-fields .field input{font-size:9px;padding:4px 5px}
+.component-fields .component-empty,.equipment-fields .equipment-empty{visibility:hidden}
+@media(min-width:700px){.customer-fields .field,.component-fields .field,.equipment-fields .field{min-height:26px}}
+@media print{.component-fields .component-empty,.equipment-fields .equipment-empty{visibility:hidden}}
 </style></head>
 <body>
 <header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div><button id="installAppBtn" type="button" hidden>＋ Install App</button></header>
@@ -137,23 +164,23 @@ main{max-width:1120px}
 <div class="field"><label>REPORT NUMBER</label><input data-key="reportNumber" placeholder="Enter report number"></div>
 <div><div class="field"><label>DATE</label><input data-key="date" type="date"></div><div class="field"><label>NEXT INSPECTION DATE</label><input data-key="nextDate" type="date"></div></div>
 </div>
-<div class="section"><div class="sectiontitle">CUSTOMER DETAILS</div><div class="fields">
-<div class="field"><label>Customer Name</label><input data-key="customer"></div><div class="field"><label>Examination Location</label><input data-key="location"></div>
-<div class="field"><label>Area</label><input data-key="area"></div><div class="field"><label>Order Number</label><input data-key="order"></div>
+<div class="section"><div class="sectiontitle">CUSTOMER DETAILS</div><div class="fields customer-fields">
+<div class="field"><label>Customer Name:</label><input data-key="customer"></div><div class="field"><label>Examination Location:</label><input data-key="location"></div>
+<div class="field"><label>Area:</label><input data-key="area"></div><div class="field"><label>Order Number:</label><input data-key="order"></div>
 </div></div>
-<div class="section"><div class="sectiontitle">COMPONENT / ITEM EXAMINED</div><div class="fields">
-<div class="field"><label>Item Description</label><input data-key="item"></div><div class="field"><label>Surface Finish</label><input data-key="surface" value="BARE METAL"></div>
-<div class="field"><label>Serial Number</label><input data-key="serial"></div><div class="field"><label>Orientation</label><input data-key="orientation" value="Vertical & Horizontal"></div>
-<div class="field"><label>Drawing / Reg. No.</label><input data-key="drawing"></div><div class="field"><label>Examination Extent</label><input data-key="extent" value="External Surface"></div>
-<div class="field"><label>Quantity</label><input data-key="quantity" value="One"></div><div class="field"><label>Stage</label><input data-key="stage"></div>
-<div class="field"><label>Material Type</label><input data-key="material" value="Ferromagnetic Material"></div><div class="field"><label>Nature</label><input data-key="nature" value="MPI - Magnetic Particle Inspection"></div>
-<div class="field"><label>Cleaning Pre</label><input data-key="cleanPre" value="Brushed and Wiped"></div><div class="field"><label>Cleaning Post</label><input data-key="cleanPost" value="Brush and Wiped"></div>
+<div class="section"><div class="sectiontitle">COMPONENT / ITEM EXAMINED</div><div class="fields component-fields">
+<div class="field"><label>Item Description:</label><input data-key="item"></div><div class="field"><label>Surface Finish:</label><input data-key="surface" value="BARE METAL"></div>
+<div class="field"><label>Serial:</label><input data-key="serial"></div><div class="field"><label>Orientation:</label><input data-key="orientation" value="Vertical &amp; Horizontal"></div>
+<div class="field component-empty"><label></label><input aria-label="unused" value="" readonly></div><div class="field"><label>Examination Extent:</label><input data-key="extent" value="External Surface"></div>
+<div class="field"><label>Qty:</label><input data-key="quantity" value="One"></div><div class="field"><label>Stage:</label><input data-key="stage"></div>
+<div class="field"><label>Material Type:</label><input data-key="material" value="Ferromagnetic Material"></div><div class="field"><label>Nature:</label><input data-key="nature" value="MPI - Magnetic Particle Inspection"></div>
+<div class="field"><label>Cleaning Pre:</label><input data-key="cleanPre" value="Brushed and Wiped"></div><div class="field"><label>Cleaning Post:</label><input data-key="cleanPost" value="Brush and Wiped"></div>
 </div></div>
-<div class="section"><div class="sectiontitle">EQUIPMENT / MATERIALS USED &amp; PROCESS CONTROLS</div><div class="fields">
-<div class="field"><label>Magnet Make &amp; S/N</label><input data-key="magnet"></div><div class="field"><label>Contrast Paint</label><input data-key="contrast"></div>
-<div class="field"><label>Pole Spacing</label><input data-key="pole" value="150 mm"></div><div class="field"><label>Particles / Batch</label><input data-key="particles"></div>
-<div class="field"><label>Magnetic Field Strength</label><input data-key="strength" value="18 kg Test Weight"></div><div class="field"><label>Particles Expiry Date</label><input data-key="expiry" type="date"></div>
-<div class="field"><label>System Performance Verification</label><input data-key="verification" value="N/A"></div><div class="field"><label>Light Intensity - White</label><input data-key="light" value="N/A"></div>
+<div class="section"><div class="sectiontitle">EQUIPMENT / MATERIALS USED &amp; PROCESS CONTROLS</div><div class="fields equipment-fields">
+<div class="field"><label>Magnet Make &amp; S/N:</label><input data-key="magnet"></div><div class="field"><label>Contrast Paint:</label><input data-key="contrast"></div>
+<div class="field"><label>Pole Spacing:</label><input data-key="pole" value="150 mm"></div><div class="field"><label>Particles:</label><input data-key="particles"></div>
+<div class="field"><label>Magnetic Field Strength:</label><input data-key="strength" value="18 kg Test Weight"></div><div class="field equipment-empty"><label></label><input aria-label="unused" value="" readonly></div>
+<div class="field"><label>System Performance Verification:</label><input data-key="verification" value="N/A"></div><div class="field"><label>Light Intensity - White:</label><input data-key="light" value="N/A"></div>
 </div></div>
 <div class="section"><div class="sectiontitle">EXAMINATION RESULTS</div><div class="result"><textarea data-key="results">Tested all welds for surface indications. No surface indications found at the time of test.</textarea><div class="status"><label><input type="radio" name="status" value="Acceptable" checked> Acceptable</label><label><input type="radio" name="status" value="Unacceptable"> Unacceptable</label></div></div></div>
 <div class="section"><div class="sectiontitle">PHOTOGRAPHS — TAP EACH BOX TO ADD A PHOTO</div><div class="photo-grid">
@@ -323,7 +350,7 @@ async function downloadWord(forEmail=false,recipient=""){
  show('reportScreen');
  try{
   const clone=sh.cloneNode(true);
-  clone.querySelectorAll('.no-print,.signature-tools,.zoom-controls,.actions').forEach(el=>el.remove());
+  clone.querySelectorAll('.no-print,.signature-tools,.zoom-controls,.actions,.photo-actions').forEach(el=>el.remove());
   clone.querySelectorAll('input,textarea,select').forEach(el=>{
    if(el.type==='radio'){
     if(el.checked){const span=document.createElement('span');span.textContent=el.value;el.parentNode.replaceWith(span)}else el.parentNode.remove();
@@ -343,7 +370,7 @@ async function downloadWord(forEmail=false,recipient=""){
    }else{photo.textContent='Photo '+(i+1)+' (no image added)';}
   });
   clone.querySelectorAll('img').forEach(img=>{img.style.maxWidth='100%';});
-  const css=`body{font-family:Arial,sans-serif;color:#1c2933;font-size:9pt}#reportSheet{width:100%;padding:0;background:#fff}.report-head{width:100%;border-bottom:2px solid #2469a5;padding-bottom:8px}.logo{font-size:22pt;font-weight:bold;color:#2873b7}.report-title{font-size:12pt;font-weight:bold}.address{text-align:right;font-size:8pt}.meta,.fields,.signature,.photo-grid{width:100%;border-collapse:collapse}.field{border:1px solid #aebdca;min-height:24px}.field label{background:#e2edf6;font-weight:bold;font-size:8pt;padding:4px}.section{border:1px solid #aebdca;margin-top:7px;page-break-inside:avoid}.sectiontitle{background:#3479b3;color:white;font-weight:bold;text-align:center;padding:5px;font-size:9pt}.fields{display:table;width:100%}.fields .field{display:table-cell;width:50%;vertical-align:top}.fields .field label{display:block}.signature{display:table;width:100%;table-layout:fixed;margin-top:8px}.signature>div{display:table-cell;width:33%;border:1px solid #aebdca;padding:6px;vertical-align:top}.signature label{font-weight:bold;font-size:8pt}.photo-grid{display:table;width:100%;table-layout:fixed}.photo{display:table-cell;width:33%;vertical-align:middle;padding:4px}.result{padding:6px}.status{padding:5px;border:1px solid #aebdca}.status span{padding-right:18px}`;
+  const css=`@page{size:A4;margin:9mm}html,body{width:192mm;margin:0 auto}body{font-family:Arial,sans-serif;color:#1c2933;font-size:8pt}#reportSheet{width:100%;padding:0;background:#fff}.report-head{width:100%;border-bottom:2px solid #2469a5;padding-bottom:8px}.logo{font-size:22pt;font-weight:bold;color:#2873b7}.report-title{font-size:12pt;font-weight:bold}.address{text-align:right;font-size:8pt}.meta,.fields,.signature,.photo-grid{width:100%;border-collapse:collapse}.field{border:1px solid #aebdca;min-height:24px}.field label{background:#e2edf6;font-weight:bold;font-size:8pt;padding:4px}.section{border:1px solid #aebdca;margin-top:5px;page-break-inside:avoid}.sectiontitle{background:#3479b3;color:white;font-weight:bold;text-align:center;padding:5px;font-size:9pt}.fields{display:table;width:100%}.fields .field{display:table-cell;width:50%;vertical-align:top}.fields .field label{display:block}.signature{display:table;width:100%;table-layout:fixed;margin-top:8px}.signature>div{display:table-cell;width:33%;border:1px solid #aebdca;padding:6px;vertical-align:top}.signature label{font-weight:bold;font-size:8pt}.photo-grid{display:table;width:100%;table-layout:fixed}.photo{display:table-cell;width:33%;vertical-align:middle;padding:4px;height:34mm;max-height:34mm;overflow:hidden}.result{padding:6px}.status{padding:5px;border:1px solid #aebdca}.status span{padding-right:18px}`;
   const html='<!doctype html><html><head><meta charset="utf-8"><title>Tech-North Inspection Report</title><style>'+css+'</style></head><body>'+clone.outerHTML+'</body></html>';
   const blob=new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'});
   const filename=name()+'.doc';
