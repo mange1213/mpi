@@ -156,6 +156,54 @@ main{max-width:1120px}
   #reportSheet .signature>div{border-right:1px solid var(--line)!important;border-bottom:0!important}
   #reportSheet .signature>div:last-child{border-right:0!important}
 }
+/* Prevent field labels and entered text from being vertically or horizontally clipped. */
+#reportSheet .field{
+  min-height:27px!important;
+  height:auto!important;
+  align-items:stretch!important;
+  grid-template-columns:minmax(0,37%) minmax(0,1fr)!important;
+  overflow:visible!important;
+}
+#reportSheet .field label{
+  display:flex!important;
+  align-items:center!important;
+  min-width:0!important;
+  min-height:25px!important;
+  height:auto!important;
+  padding:4px 5px!important;
+  font-size:9px!important;
+  line-height:1.25!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+}
+#reportSheet .field input,
+#reportSheet .field select{
+  display:block!important;
+  min-width:0!important;
+  min-height:25px!important;
+  height:auto!important;
+  padding:4px 5px!important;
+  font-size:9px!important;
+  line-height:1.25!important;
+  white-space:normal!important;
+  overflow:visible!important;
+}
+#reportSheet .customer-fields .field,
+#reportSheet .component-fields .field,
+#reportSheet .equipment-fields .field{
+  min-height:27px!important;
+  height:auto!important;
+}
+@media print{
+  #reportSheet .field{min-height:27px!important;height:auto!important;overflow:visible!important}
+  #reportSheet .field label{min-height:25px!important;height:auto!important;font-size:8.5px!important;line-height:1.2!important;padding:4px!important;overflow:visible!important;overflow-wrap:break-word!important}
+  #reportSheet .field input,#reportSheet .field select{min-height:25px!important;height:auto!important;font-size:8.5px!important;line-height:1.2!important;padding:4px!important}
+}
+.pdf-export-mode #reportSheet .field{min-height:25px!important;height:auto!important;overflow:visible!important}
+.pdf-export-mode #reportSheet .field label{min-height:23px!important;height:auto!important;line-height:1.2!important;white-space:normal!important;overflow:visible!important;overflow-wrap:break-word!important}
+.pdf-export-mode #reportSheet .field input,.pdf-export-mode #reportSheet .field select{min-height:23px!important;height:auto!important;line-height:1.2!important;white-space:normal!important}
 </style></head>
 <body>
 <header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div><button id="installAppBtn" type="button" hidden>＋ Install App</button></header>
