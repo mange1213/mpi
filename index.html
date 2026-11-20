@@ -142,6 +142,20 @@ main{max-width:1120px}
 .component-fields .component-empty,.equipment-fields .equipment-empty{visibility:hidden}
 @media(min-width:700px){.customer-fields .field,.component-fields .field,.equipment-fields .field{min-height:26px}}
 @media print{.component-fields .component-empty,.equipment-fields .equipment-empty{visibility:hidden}}
+/* On phones, keep the report itself in its original A4 two-column layout.
+   The sheet is scaled to fit the screen; its internal tables must not stack. */
+@media(max-width:650px){
+  #reportSheet .report-head{grid-template-columns:1fr 1.15fr!important;gap:8px!important}
+  #reportSheet .address{text-align:right!important}
+  #reportSheet .meta{grid-template-columns:1fr 1fr!important}
+  #reportSheet .fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #reportSheet .fields .field{border-right:1px solid var(--line)!important}
+  #reportSheet .fields .field:nth-child(even){border-right:0!important}
+  #reportSheet .field{grid-template-columns:minmax(0,37%) minmax(0,1fr)!important}
+  #reportSheet .signature{grid-template-columns:.9fr 1.5fr .9fr!important}
+  #reportSheet .signature>div{border-right:1px solid var(--line)!important;border-bottom:0!important}
+  #reportSheet .signature>div:last-child{border-right:0!important}
+}
 </style></head>
 <body>
 <header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div><button id="installAppBtn" type="button" hidden>＋ Install App</button></header>
