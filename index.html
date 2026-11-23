@@ -313,7 +313,23 @@ async function applyExaminerProfile(idv){if(!idv)return;const e=(await getExamin
 function importSignature(event){const f=event.target.files&&event.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){alert('Please select a signature image.');return}const rd=new FileReader();rd.onload=()=>{signatureImage=rd.result;restoreSignature();toast('Signature image imported — save the report')};rd.readAsDataURL(f);event.target.value=''}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function name(){return (fields().reportNumber||'Tech-North-report').replace(/[^a-z0-9_-]/gi,'_')}
-function download(blob,n){let u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1800)}
+// Mobile-safe file delivery: never rely only on a scripted download click.
+function download(blob,n){
+ const url=URL.createObjectURL(blob);
+ const old=document.getElementById('fileSavePanel');if(old){const prior=old.dataset.objectUrl;if(prior)URL.revokeObjectURL(prior);old.remove()}
+ const panel=document.createElement('div');panel.id='fileSavePanel';panel.dataset.objectUrl=url;
+ panel.style.cssText='position:fixed;z-index:99999;inset:0;background:#102030aa;display:flex;align-items:flex-end;justify-content:center;padding:14px;font-family:Arial,sans-serif';
+ const card=document.createElement('div');card.style.cssText='background:white;color:#1c2933;border-radius:16px;padding:20px;width:min(100%,480px);box-shadow:0 8px 35px #0005';
+ const title=document.createElement('h3');title.textContent='Your file is ready';title.style.margin='0 0 8px';
+ const info=document.createElement('p');info.textContent='Choose how to save or share '+n+'. On iPhone, use Share and choose Save to Files. On Huawei, choose your browser download option or Files.';info.style.cssText='font-size:14px;line-height:1.45;color:#52616d';
+ const link=document.createElement('a');link.href=url;link.download=n;link.target='_blank';link.rel='noopener';link.textContent='Download / open file';link.style.cssText='display:block;text-align:center;background:#2469a5;color:white;text-decoration:none;font-weight:bold;padding:13px;border-radius:8px;margin:14px 0';
+ const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+ const share=document.createElement('button');share.type='button';share.textContent='Share / Save to Files';share.style.cssText='flex:1;background:#174a78;color:white;padding:12px;border:0;border-radius:8px;font-weight:bold';
+ share.onclick=async()=>{try{const file=new File([blob],n,{type:blob.type||'application/octet-stream'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:n});}else{info.textContent='File sharing is not available in this browser. Tap Download / open file instead.'}}catch(e){if(e&&e.name!=='AbortError')info.textContent='Sharing was unavailable. Tap Download / open file instead.'}};
+ const close=document.createElement('button');close.type='button';close.textContent='Close';close.style.cssText='background:#e6eef5;color:#174a78;padding:12px;border:0;border-radius:8px;font-weight:bold';
+ close.onclick=()=>{URL.revokeObjectURL(url);panel.remove()};
+ actions.append(share,close);card.append(title,info,link,actions);panel.append(card);document.body.append(panel);
+}
 async function waitForReportAssets(sh){
  // Wait for the report layout and embedded photos/signature to finish rendering before capture.
  fitSignatureFields();
@@ -346,8 +362,9 @@ async function downloadPDF(){
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
   pdf.addImage(canvas.toDataURL('image/jpeg',0.96),'JPEG',0,0,210,297,undefined,'FAST');
-  pdf.save(name()+'.pdf');
-  toast('A4 PDF saved');
+  const pdfBlob=pdf.output('blob');
+  download(pdfBlob,name()+'.pdf');
+  toast('PDF ready to save');
  }catch(e){console.error('Direct PDF export failed:',e);alert('Could not create the PDF. Please try again. '+(e.message||''))}
  finally{sh.classList.remove('pdf-export-mode');sh.style.zoom=previousZoom;sh.style.transform=previousTransform;applyZoom()}
 }
@@ -398,7 +415,7 @@ async function downloadExcel(){
   dataSheet.autoFilter={from:'A1',to:'B'+dataSheet.rowCount};
   const buffer=await workbook.xlsx.writeBuffer();
   download(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),name()+'.xlsx');
-  toast('Excel report saved');
+  toast('Excel file ready to save');
  }catch(e){console.error('Excel export failed:',e);alert('Could not create the Excel report. Please try again. '+(e.message||''))}
  finally{sh.classList.remove('pdf-export-mode');sh.style.zoom=previousZoom;sh.style.transform=previousTransform;applyZoom()}
 }
@@ -437,7 +454,7 @@ async function downloadWord(forEmail=false,recipient=""){
   const blob=new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'});
   const filename=name()+'.doc';
   if(forEmail)return shareReportFile(blob,filename,recipient);
-  download(blob,filename);toast('Editable Word document saved');
+  download(blob,filename);toast('Word file ready to save');
  }catch(e){console.error('Editable Word export failed:',e);alert('Could not create the editable Word document. Please try again. '+(e.message||''))}
 }
 async function emailReport(){
@@ -468,11 +485,11 @@ async function shareReportFile(blob,filename,recipient){
  }
  // Fallback for browsers that cannot share attachments: download the report and open an addressed draft.
  download(blob,filename);
- const mailBody=body+'\n\nYour browser cannot attach files automatically. Please attach the downloaded report before sending.';
+ const mailBody=body+'\n\nPlease save the report from the file panel, then attach it to this email.';
  window.location.href='mailto:'+encodeURIComponent(recipient)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(mailBody);
  alert('The report has been downloaded and an email draft opened. If the report is not attached automatically, attach '+filename+' before sending.');
 }
-async function downloadBackup(){let rs=await getAll();if(currentId){let d=fields(),r={id:currentId,data:d,photos,signatureImage:signatureImage||null,title:(d.reportNumber||'Draft')+' — '+(d.customer||d.item||'Inspection'),updated:Date.now()};await put(r);rs=await getAll()}download(new Blob([JSON.stringify({app:'Tech-North',version:2,reports:rs,examiners:await getExaminers()},null,2)],{type:'application/json'}),'technorth-backup.json');toast('Backup downloaded')}
+async function downloadBackup(){let rs=await getAll();if(currentId){let d=fields(),r={id:currentId,data:d,photos,signatureImage:signatureImage||null,title:(d.reportNumber||'Draft')+' — '+(d.customer||d.item||'Inspection'),updated:Date.now()};await put(r);rs=await getAll()}download(new Blob([JSON.stringify({app:'Tech-North',version:2,reports:rs,examiners:await getExaminers()},null,2)],{type:'application/json'}),'technorth-backup.json');toast('Backup ready to save')}
 async function importBackup(event){
  const input=event.target, file=input.files&&input.files[0]; if(!file)return;
  try{
