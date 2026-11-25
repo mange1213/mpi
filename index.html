@@ -271,9 +271,9 @@ main{max-width:1120px}
 <div id="fileSavePanel" class="file-save-panel" role="dialog" aria-modal="true" aria-labelledby="fileSaveTitle">
  <div class="file-save-card">
   <h2 id="fileSaveTitle">Your file is ready</h2>
-  <p>Tap <b>Download file</b> below. Your browser may ask where to save it. On iPhone, use <b>Share file</b> if you want to save it to Files or send it to another app.</p>
+  <p>Tap <b>Save to phone</b>. Supported browsers open a save-location picker. On iPhone, choose <b>Save to Files</b> in the share sheet. If the picker is unavailable, use <b>Download file</b>.</p>
   <div id="fileSaveName" class="file-name"></div>
-  <div class="actions"><a id="fileDownloadLink" href="#" download>Download file</a><button id="fileShareButton" type="button" class="light">Share file</button></div>
+  <div class="actions"><button id="fileSaveToPhone" type="button">Save to phone</button><a id="fileDownloadLink" href="#" download>Download file</a></div><div class="actions"><button id="fileShareButton" type="button" class="light">Share file</button></div>
   <div class="actions"><button id="fileSaveClose" type="button" class="light">Close</button></div>
  </div>
 </div>
@@ -325,8 +325,27 @@ function importSignature(event){const f=event.target.files&&event.target.files[0
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function name(){return (fields().reportNumber||'Tech-North-report').replace(/[^a-z0-9_-]/gi,'_')}
 let pendingFileUrl=null,pendingFile=null;
-function closeFileSave(){const panel=$('#fileSavePanel');panel.classList.remove('open');if(pendingFileUrl){URL.revokeObjectURL(pendingFileUrl);pendingFileUrl=null}pendingFile=null;$('#fileDownloadLink').removeAttribute('href');$('#fileShareButton').disabled=true}
-function download(blob,n){try{closeFileSave();pendingFileUrl=URL.createObjectURL(blob);pendingFile={blob,name:n,type:blob.type||'application/octet-stream'};const link=$('#fileDownloadLink');link.href=pendingFileUrl;link.download=n;$('#fileSaveName').textContent=n;$('#fileShareButton').disabled=!(navigator.share&&typeof File!=='undefined');$('#fileSavePanel').classList.add('open')}catch(e){console.error('Could not prepare download:',e);alert('The file was created but this browser could not prepare it for saving. Try opening the app in Safari or Chrome. '+(e.message||''))}}
+function closeFileSave(){const panel=$('#fileSavePanel');panel.classList.remove('open');if(pendingFileUrl){URL.revokeObjectURL(pendingFileUrl);pendingFileUrl=null}pendingFile=null;$('#fileDownloadLink').removeAttribute('href');$('#fileShareButton').disabled=true;$('#fileSaveToPhone').disabled=true}
+function download(blob,n){try{closeFileSave();pendingFileUrl=URL.createObjectURL(blob);pendingFile={blob,name:n,type:blob.type||'application/octet-stream'};const link=$('#fileDownloadLink');link.href=pendingFileUrl;link.download=n;$('#fileSaveName').textContent=n;$('#fileShareButton').disabled=!(navigator.share&&typeof File!=='undefined');$('#fileSaveToPhone').disabled=false;$('#fileSavePanel').classList.add('open')}catch(e){console.error('Could not prepare download:',e);alert('The file was created but this browser could not prepare it for saving. Try opening the app in Safari or Chrome. '+(e.message||''))}}
+$('#fileSaveToPhone').addEventListener('click',async()=>{
+ if(!pendingFile)return;
+ const file=pendingFile;
+ // On supported Chromium browsers, open the native Save As picker from this direct tap.
+ if(typeof window.showSaveFilePicker==='function'){
+  try{
+   const handle=await window.showSaveFilePicker({suggestedName:file.name,types:[{description:'Exported report',accept:{[file.type]:['.'+(file.name.split('.').pop()||'bin')]}}]});
+   const writable=await handle.createWritable();await writable.write(file.blob);await writable.close();toast('File saved to the location you selected.');closeFileSave();return;
+  }catch(e){if(e.name==='AbortError')return;console.warn('Native save picker failed; using browser download.',e);}
+ }
+ // iPhone/iPad: the share sheet is the supported route into the Files app.
+ const ua=navigator.userAgent||'';const isIOS=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(isIOS&&navigator.share&&typeof File!=='undefined'){
+  try{const f=new File([file.blob],file.name,{type:file.type});if(!navigator.canShare||navigator.canShare({files:[f]})){await navigator.share({files:[f],title:file.name});toast('Choose Save to Files in the share sheet.');return;}}
+  catch(e){if(e.name==='AbortError')return;console.warn('iOS share save fallback:',e);}
+ }
+ // Other mobile browsers use the visible download link; the user taps it directly.
+ const link=$('#fileDownloadLink');if(link&&link.href){link.click();toast('If asked, confirm the download. Check your Downloads folder.');}
+});
 $('#fileSaveClose').addEventListener('click',closeFileSave);
 $('#fileSavePanel').addEventListener('click',e=>{if(e.target===$('#fileSavePanel'))closeFileSave()});
 $('#fileShareButton').addEventListener('click',async()=>{if(!pendingFile)return;try{const file=new File([pendingFile.blob],pendingFile.name,{type:pendingFile.type});if(!navigator.share)throw new Error('File sharing is not supported in this browser.');if(navigator.canShare&&!navigator.canShare({files:[file]}))throw new Error('This browser cannot share this file type. Tap Download file instead.');await navigator.share({files:[file],title:pendingFile.name});toast('File shared. Choose where to save or send it.')}catch(e){if(e.name!=='AbortError')alert(e.message||'Could not share this file. Tap Download file instead.')}});
@@ -673,8 +692,8 @@ window.addEventListener('resize',()=>{if(document.querySelector('#reportScreen')
     }
     const ua=navigator.userAgent||'';
     const ios=/iPhone|iPad|iPod/i.test(ua);
-    const message=ios?'To install on iPhone: open this site in Safari, tap the Share icon, then choose Add to Home Screen.':'To install: open the browser menu and choose Install app or Add to Home screen. If this option is missing, try opening the website in Chrome.';
-    if (typeof toast === 'function') toast(message); else alert(message);
+    const message=ios?'iPhone installation: open this website in Safari, tap the Share button, scroll down and choose Add to Home Screen, then tap Add. Apple does not let websites open this final option automatically.':'Installation is not available as a direct prompt in this browser. Open the browser menu and choose Install app or Add to Home screen. If that option is missing, open this HTTPS website in Chrome.';
+    alert(message);
   });
 })();
 </script>

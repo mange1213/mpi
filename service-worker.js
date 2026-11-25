@@ -1,4 +1,4 @@
-const CACHE_NAME = 'technorth-offline-v10';
+const CACHE_NAME = 'technorth-offline-v11';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './icon-512-maskable.png'
