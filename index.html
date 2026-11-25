@@ -45,6 +45,7 @@ input:focus,textarea:focus{background:#fffbea;box-shadow:inset 0 0 0 2px #f0c85a
 .photo .remove{position:absolute;right:4px;top:4px;padding:5px 7px;font-size:10px;display:none;z-index:2}
 .signature{display:grid;grid-template-columns:.9fr 1.5fr .9fr;margin-top:10px;border:1px solid var(--line)}.signature>div{border-right:1px solid var(--line);padding:7px;min-width:0}.signature>div:last-child{border-right:0}.signature label{display:block;font-size:10px;font-weight:bold;margin-bottom:4px}.signature input,.signature textarea{display:block;width:100%;min-width:0;border:1px solid var(--line);padding:6px;font-size:11px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}.signature textarea{height:38px;min-height:38px;resize:none;overflow:hidden}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.saved-list{display:grid;gap:9px}.saved-card{background:white;border:1px solid #d5dee6;border-radius:10px;padding:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.saved-card small{display:block;color:#687986;margin-top:4px}.empty{background:white;border:1px dashed #b8c6d3;padding:24px;border-radius:10px;color:#607180;text-align:center}
+.file-save-panel{position:fixed;inset:0;background:#10283dcc;display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:30}.file-save-panel.open{display:flex}.file-save-card{width:min(100%,480px);background:#fff;border-radius:16px;padding:20px;box-shadow:0 10px 40px #0005}.file-save-card h2{margin:0 0 8px;font-size:19px}.file-save-card p{color:#607180;line-height:1.45;font-size:14px}.file-save-card .actions{display:grid;grid-template-columns:1fr 1fr}.file-save-card a{display:block;text-align:center;text-decoration:none;background:var(--blue);color:#fff;font-weight:bold;border-radius:8px;padding:13px 10px}.file-save-card button{width:100%}.file-save-card .file-name{font-size:12px;overflow-wrap:anywhere;background:#f3f6f9;padding:9px;border-radius:6px;color:#34495a}@media(min-width:600px){.file-save-panel{align-items:center}}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#173d5d;color:white;padding:12px 18px;border-radius:9px;display:none;z-index:9;box-shadow:0 4px 15px #0003}
 @media(max-width:650px){.menu{grid-template-columns:1fr;gap:10px}.menu button{min-height:0;display:grid;grid-template-columns:52px 1fr;text-align:left;align-items:center;padding:16px}.menu .ico{grid-row:span 2;margin:0;font-size:30px}.menu small{margin-top:3px}.report-head{grid-template-columns:1fr}.address{text-align:left}.meta,.fields{grid-template-columns:1fr}.fields .field{border-right:0!important}.field{grid-template-columns:minmax(105px,39%) 1fr}.sheet{padding:8px}.photo-grid{gap:4px;padding:5px}.photo{height:110px;min-height:110px;max-height:110px}.photo img{height:110px;max-height:110px;flex-basis:110px}.photo .label{font-size:10px}.photo .sub{font-size:9px}.signature{grid-template-columns:1fr}.signature>div{border-right:0;border-bottom:1px solid var(--line)}.signature textarea{height:34px;min-height:34px}}
 @page{size:210mm 297mm;margin:0}
@@ -266,14 +267,24 @@ main{max-width:1120px}
 <button onclick="document.getElementById('backupFile').click()"><span class="ico">📥</span><strong>Import / restore backup</strong><small>Merge examiner profiles and add reports without deleting existing reports</small></button>
 <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
 </div><div class="actions"><button class="light" onclick="goHome()">Back to menu</button></div></section>
-</main><div class="toast" id="toast"></div>
+</main>
+<div id="fileSavePanel" class="file-save-panel" role="dialog" aria-modal="true" aria-labelledby="fileSaveTitle">
+ <div class="file-save-card">
+  <h2 id="fileSaveTitle">Your file is ready</h2>
+  <p>Tap <b>Download file</b> below. Your browser may ask where to save it. On iPhone, use <b>Share file</b> if you want to save it to Files or send it to another app.</p>
+  <div id="fileSaveName" class="file-name"></div>
+  <div class="actions"><a id="fileDownloadLink" href="#" download>Download file</a><button id="fileShareButton" type="button" class="light">Share file</button></div>
+  <div class="actions"><button id="fileSaveClose" type="button" class="light">Close</button></div>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
 <script>
 const DB='technorth-example-v2',STORE='reports',EXAMINERS='examiners';let db,dbPromise,currentId=null,photos=[null,null,null],signatureImage=null,profileSignature=null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 function toast(t){let e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
 function show(id){$$('.screen').forEach(s=>s.classList.remove('active'));$('#'+id).classList.add('active');window.scrollTo(0,0)}
 function goHome(){show('homeScreen')}
-function openDB(){if(db)return Promise.resolve();if(dbPromise)return dbPromise;dbPromise=new Promise((ok,no)=>{try{let r=indexedDB.open(DB,2);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'});if(!r.result.objectStoreNames.contains(EXAMINERS))r.result.createObjectStore(EXAMINERS,{keyPath:'id'})};r.onsuccess=()=>{db=r.result;db.onversionchange=()=>db.close();ok()};r.onerror=()=>{dbPromise=null;no(r.error||new Error('Could not open report storage'))};r.onblocked=()=>{dbPromise=null;no(new Error('Report storage is blocked by another open app tab'))}}catch(e){dbPromise=null;no(e)}});return dbPromise}
+function openDB(){if(db)return Promise.resolve();if(dbPromise)return dbPromise;dbPromise=new Promise((ok,no)=>{try{if(!('indexedDB' in window)||!window.indexedDB)throw new Error('This browser does not allow on-device report storage. Open the app in Safari or Chrome and check that site data is enabled.');let r=indexedDB.open(DB,2);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'});if(!r.result.objectStoreNames.contains(EXAMINERS))r.result.createObjectStore(EXAMINERS,{keyPath:'id'})};r.onsuccess=()=>{db=r.result;db.onversionchange=()=>{db.close();db=null;dbPromise=null};ok()};r.onerror=()=>{dbPromise=null;no(r.error||new Error('Could not open report storage'))};r.onblocked=()=>{dbPromise=null;no(new Error('Report storage is blocked by another open app tab. Close other copies of this app and try again.'))}}catch(e){dbPromise=null;no(e)}});return dbPromise}
 function store(mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}
 function examinerStore(mode='readonly'){return db.transaction(EXAMINERS,mode).objectStore(EXAMINERS)}
 async function getExaminers(){await openDB();return new Promise((ok,no)=>{let q=examinerStore().getAll();q.onsuccess=()=>ok(q.result.sort((a,b)=>a.name.localeCompare(b.name)));q.onerror=()=>no(q.error)})}
@@ -281,7 +292,7 @@ async function putExaminer(e){await openDB();return new Promise((ok,no)=>{let q=
 async function deleteExaminer(idv){await openDB();return new Promise((ok,no)=>{let q=examinerStore('readwrite').delete(idv);q.onsuccess=ok;q.onerror=()=>no(q.error)})}
 async function getAll(){await openDB();return new Promise((ok,no)=>{let r=store().getAll();r.onsuccess=()=>ok(r.result.sort((a,b)=>b.updated-a.updated));r.onerror=()=>no(r.error)})}
 async function getOne(id){await openDB();return new Promise((ok,no)=>{let r=store().get(id);r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
-async function put(r){await openDB();return new Promise((ok,no)=>{let q=store('readwrite').put(r);q.onsuccess=ok;q.onerror=()=>no(q.error)})}
+async function put(r){await openDB();return new Promise((ok,no)=>{let tx;try{tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(r);tx.oncomplete=()=>ok(r);tx.onerror=()=>no(tx.error||new Error('The report could not be written to device storage.'));tx.onabort=()=>no(tx.error||new Error('Saving was cancelled by the browser. Check available device storage and try again.'))}catch(e){no(e)}})}
 function fields(){let d={};$$('[data-key]').forEach(e=>d[e.dataset.key]=e.value);d.status=$('input[name=status]:checked')?.value||'Acceptable';return d}
 function addOneYear(iso){if(!iso)return '';const parts=iso.split('-').map(Number);if(parts.length!==3||parts.some(n=>!Number.isFinite(n)))return '';const y=parts[0]+1,m=parts[1]-1,day=parts[2],lastDay=new Date(y,m+1,0).getDate();return String(y).padStart(4,'0')+'-'+String(m+1).padStart(2,'0')+'-'+String(Math.min(day,lastDay)).padStart(2,'0')}
 function syncNextInspectionDate(){const date=$('[data-key="date"]'),next=$('[data-key="nextDate"]');if(date&&next)next.value=addOneYear(date.value)}
@@ -313,23 +324,12 @@ async function applyExaminerProfile(idv){if(!idv)return;const e=(await getExamin
 function importSignature(event){const f=event.target.files&&event.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){alert('Please select a signature image.');return}const rd=new FileReader();rd.onload=()=>{signatureImage=rd.result;restoreSignature();toast('Signature image imported — save the report')};rd.readAsDataURL(f);event.target.value=''}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function name(){return (fields().reportNumber||'Tech-North-report').replace(/[^a-z0-9_-]/gi,'_')}
-// Mobile-safe file delivery: never rely only on a scripted download click.
-function download(blob,n){
- const url=URL.createObjectURL(blob);
- const old=document.getElementById('fileSavePanel');if(old){const prior=old.dataset.objectUrl;if(prior)URL.revokeObjectURL(prior);old.remove()}
- const panel=document.createElement('div');panel.id='fileSavePanel';panel.dataset.objectUrl=url;
- panel.style.cssText='position:fixed;z-index:99999;inset:0;background:#102030aa;display:flex;align-items:flex-end;justify-content:center;padding:14px;font-family:Arial,sans-serif';
- const card=document.createElement('div');card.style.cssText='background:white;color:#1c2933;border-radius:16px;padding:20px;width:min(100%,480px);box-shadow:0 8px 35px #0005';
- const title=document.createElement('h3');title.textContent='Your file is ready';title.style.margin='0 0 8px';
- const info=document.createElement('p');info.textContent='Choose how to save or share '+n+'. On iPhone, use Share and choose Save to Files. On Huawei, choose your browser download option or Files.';info.style.cssText='font-size:14px;line-height:1.45;color:#52616d';
- const link=document.createElement('a');link.href=url;link.download=n;link.target='_blank';link.rel='noopener';link.textContent='Download / open file';link.style.cssText='display:block;text-align:center;background:#2469a5;color:white;text-decoration:none;font-weight:bold;padding:13px;border-radius:8px;margin:14px 0';
- const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
- const share=document.createElement('button');share.type='button';share.textContent='Share / Save to Files';share.style.cssText='flex:1;background:#174a78;color:white;padding:12px;border:0;border-radius:8px;font-weight:bold';
- share.onclick=async()=>{try{const file=new File([blob],n,{type:blob.type||'application/octet-stream'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:n});}else{info.textContent='File sharing is not available in this browser. Tap Download / open file instead.'}}catch(e){if(e&&e.name!=='AbortError')info.textContent='Sharing was unavailable. Tap Download / open file instead.'}};
- const close=document.createElement('button');close.type='button';close.textContent='Close';close.style.cssText='background:#e6eef5;color:#174a78;padding:12px;border:0;border-radius:8px;font-weight:bold';
- close.onclick=()=>{URL.revokeObjectURL(url);panel.remove()};
- actions.append(share,close);card.append(title,info,link,actions);panel.append(card);document.body.append(panel);
-}
+let pendingFileUrl=null,pendingFile=null;
+function closeFileSave(){const panel=$('#fileSavePanel');panel.classList.remove('open');if(pendingFileUrl){URL.revokeObjectURL(pendingFileUrl);pendingFileUrl=null}pendingFile=null;$('#fileDownloadLink').removeAttribute('href');$('#fileShareButton').disabled=true}
+function download(blob,n){try{closeFileSave();pendingFileUrl=URL.createObjectURL(blob);pendingFile={blob,name:n,type:blob.type||'application/octet-stream'};const link=$('#fileDownloadLink');link.href=pendingFileUrl;link.download=n;$('#fileSaveName').textContent=n;$('#fileShareButton').disabled=!(navigator.share&&typeof File!=='undefined');$('#fileSavePanel').classList.add('open')}catch(e){console.error('Could not prepare download:',e);alert('The file was created but this browser could not prepare it for saving. Try opening the app in Safari or Chrome. '+(e.message||''))}}
+$('#fileSaveClose').addEventListener('click',closeFileSave);
+$('#fileSavePanel').addEventListener('click',e=>{if(e.target===$('#fileSavePanel'))closeFileSave()});
+$('#fileShareButton').addEventListener('click',async()=>{if(!pendingFile)return;try{const file=new File([pendingFile.blob],pendingFile.name,{type:pendingFile.type});if(!navigator.share)throw new Error('File sharing is not supported in this browser.');if(navigator.canShare&&!navigator.canShare({files:[file]}))throw new Error('This browser cannot share this file type. Tap Download file instead.');await navigator.share({files:[file],title:pendingFile.name});toast('File shared. Choose where to save or send it.')}catch(e){if(e.name!=='AbortError')alert(e.message||'Could not share this file. Tap Download file instead.')}});
 async function waitForReportAssets(sh){
  // Wait for the report layout and embedded photos/signature to finish rendering before capture.
  fitSignatureFields();
@@ -362,9 +362,8 @@ async function downloadPDF(){
   const {jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
   pdf.addImage(canvas.toDataURL('image/jpeg',0.96),'JPEG',0,0,210,297,undefined,'FAST');
-  const pdfBlob=pdf.output('blob');
-  download(pdfBlob,name()+'.pdf');
-  toast('PDF ready to save');
+  download(pdf.output('blob'),name()+'.pdf');
+  toast('PDF is ready — tap Download file');
  }catch(e){console.error('Direct PDF export failed:',e);alert('Could not create the PDF. Please try again. '+(e.message||''))}
  finally{sh.classList.remove('pdf-export-mode');sh.style.zoom=previousZoom;sh.style.transform=previousTransform;applyZoom()}
 }
@@ -415,7 +414,7 @@ async function downloadExcel(){
   dataSheet.autoFilter={from:'A1',to:'B'+dataSheet.rowCount};
   const buffer=await workbook.xlsx.writeBuffer();
   download(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),name()+'.xlsx');
-  toast('Excel file ready to save');
+  toast('Excel file is ready — tap Download file');
  }catch(e){console.error('Excel export failed:',e);alert('Could not create the Excel report. Please try again. '+(e.message||''))}
  finally{sh.classList.remove('pdf-export-mode');sh.style.zoom=previousZoom;sh.style.transform=previousTransform;applyZoom()}
 }
@@ -454,7 +453,7 @@ async function downloadWord(forEmail=false,recipient=""){
   const blob=new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'});
   const filename=name()+'.doc';
   if(forEmail)return shareReportFile(blob,filename,recipient);
-  download(blob,filename);toast('Word file ready to save');
+  download(blob,filename);toast('Word file is ready — tap Download file');
  }catch(e){console.error('Editable Word export failed:',e);alert('Could not create the editable Word document. Please try again. '+(e.message||''))}
 }
 async function emailReport(){
@@ -485,11 +484,11 @@ async function shareReportFile(blob,filename,recipient){
  }
  // Fallback for browsers that cannot share attachments: download the report and open an addressed draft.
  download(blob,filename);
- const mailBody=body+'\n\nPlease save the report from the file panel, then attach it to this email.';
+ const mailBody=body+'\n\nYour browser cannot attach files automatically. Please attach the downloaded report before sending.';
  window.location.href='mailto:'+encodeURIComponent(recipient)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(mailBody);
- alert('The report has been downloaded and an email draft opened. If the report is not attached automatically, attach '+filename+' before sending.');
+ alert('An email draft was opened. First tap Download file in the app to save the report, then attach '+filename+' to the email before sending.');
 }
-async function downloadBackup(){let rs=await getAll();if(currentId){let d=fields(),r={id:currentId,data:d,photos,signatureImage:signatureImage||null,title:(d.reportNumber||'Draft')+' — '+(d.customer||d.item||'Inspection'),updated:Date.now()};await put(r);rs=await getAll()}download(new Blob([JSON.stringify({app:'Tech-North',version:2,reports:rs,examiners:await getExaminers()},null,2)],{type:'application/json'}),'technorth-backup.json');toast('Backup ready to save')}
+async function downloadBackup(){let rs=await getAll();if(currentId){let d=fields(),r={id:currentId,data:d,photos,signatureImage:signatureImage||null,title:(d.reportNumber||'Draft')+' — '+(d.customer||d.item||'Inspection'),updated:Date.now()};await put(r);rs=await getAll()}download(new Blob([JSON.stringify({app:'Tech-North',version:2,reports:rs,examiners:await getExaminers()},null,2)],{type:'application/json'}),'technorth-backup.json');toast('Backup is ready — tap Download file')}
 async function importBackup(event){
  const input=event.target, file=input.files&&input.files[0]; if(!file)return;
  try{
@@ -672,8 +671,10 @@ window.addEventListener('resize',()=>{if(document.querySelector('#reportScreen')
       installPrompt = null;
       return;
     }
-    if (typeof toast === 'function') toast('To install: open Chrome menu ⋮ and choose Install app or Add to Home screen.');
-    else alert('To install: open Chrome menu ⋮ and choose Install app or Add to Home screen.');
+    const ua=navigator.userAgent||'';
+    const ios=/iPhone|iPad|iPod/i.test(ua);
+    const message=ios?'To install on iPhone: open this site in Safari, tap the Share icon, then choose Add to Home Screen.':'To install: open the browser menu and choose Install app or Add to Home screen. If this option is missing, try opening the website in Chrome.';
+    if (typeof toast === 'function') toast(message); else alert(message);
   });
 })();
 </script>
