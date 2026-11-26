@@ -205,6 +205,49 @@ main{max-width:1120px}
 .pdf-export-mode #reportSheet .field{min-height:25px!important;height:auto!important;overflow:visible!important}
 .pdf-export-mode #reportSheet .field label{min-height:23px!important;height:auto!important;line-height:1.2!important;white-space:normal!important;overflow:visible!important;overflow-wrap:break-word!important}
 .pdf-export-mode #reportSheet .field input,.pdf-export-mode #reportSheet .field select{min-height:23px!important;height:auto!important;line-height:1.2!important;white-space:normal!important}
+
+/* V6 PRINT LAYOUT: use the printable A4 area instead of shrinking a fixed-width sheet. */
+@media print {
+  @page { size: A4 portrait; margin: 4mm; }
+  html, body { width: auto !important; min-width: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  main { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+  #reportScreen { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+  #reportSheet, #reportSheet.sheet {
+    display: flex !important; flex-direction: column !important;
+    box-sizing: border-box !important; width: 100% !important;
+    height: 289mm !important; min-height: 289mm !important; max-height: none !important;
+    margin: 0 !important; padding: 5mm !important;
+    border: 0 !important; box-shadow: none !important;
+    transform: none !important; zoom: 1 !important; overflow: visible !important;
+  }
+  #reportSheet > .report-head { flex: 0 0 auto !important; padding-bottom: 3mm !important; }
+  #reportSheet .report-head .logo { font-size: 25pt !important; }
+  #reportSheet .report-title { font-size: 12pt !important; margin-top: 5px !important; }
+  #reportSheet .address { font-size: 8pt !important; }
+  #reportSheet > .meta { flex: 0 0 auto !important; margin-bottom: 1mm !important; }
+  #reportSheet .field { min-height: 7mm !important; }
+  #reportSheet .field label { font-size: 9pt !important; padding: 4px 5px !important; }
+  #reportSheet .field input, #reportSheet .field select { font-size: 9pt !important; padding: 4px 5px !important; }
+  #reportSheet > .section { flex: 0 0 auto !important; margin-top: 2.5mm !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+  #reportSheet .sectiontitle { font-size: 9pt !important; padding: 5px !important; }
+  #reportSheet .result { padding: 6px !important; }
+  #reportSheet .result textarea { min-height: 12mm !important; font-size: 9pt !important; }
+  #reportSheet .status { margin-top: 2mm !important; }
+  #reportSheet .status label { font-size: 9pt !important; padding: 5px 7px !important; }
+  #reportSheet > .section:has(.photo-grid) { display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; min-height: 48mm !important; }
+  #reportSheet .photo-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 3mm !important; padding: 3mm 1mm !important; flex: 1 1 auto !important; }
+  #reportSheet .photo { height: 100% !important; min-height: 38mm !important; max-height: none !important; border: 1px solid #aebdca !important; overflow: hidden !important; }
+  #reportSheet .photo img { display: block !important; width: 100% !important; height: 100% !important; min-height: 38mm !important; max-height: none !important; object-fit: contain !important; }
+  #reportSheet .photo input, #reportSheet .photo .plus, #reportSheet .photo .label,
+  #reportSheet .photo .sub, #reportSheet .photo .remove, #reportSheet .photo .photo-actions,
+  #reportSheet .signature-tools, #reportSheet .zoom-controls, #reportSheet .actions,
+  #reportSheet .no-print { display: none !important; }
+  #reportSheet > .signature { flex: 0 0 auto !important; margin-top: 4mm !important; }
+  #reportSheet .signature > div { padding: 5px !important; }
+  #reportSheet .signature label { font-size: 8pt !important; }
+  #reportSheet .signature textarea, #reportSheet .signature input { font-size: 9pt !important; }
+}
 </style></head>
 <body>
 <header><div><div class="logo">TECH-NORTH</div><div class="tag">MAGNETIC PARTICLE EXAMINATION REPORTS</div></div><button id="installAppBtn" type="button" hidden>＋ Install App</button></header>
