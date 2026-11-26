@@ -303,7 +303,7 @@ main{max-width:1120px}
 <section id="savedScreen" class="screen"><div class="toprow"><div><h1>Reports saved</h1><p class="hint" style="margin:3px 0 0">Saved reports on this device.</p></div><button class="light" onclick="goHome()">← Home</button></div><div id="savedList" class="saved-list"></div></section>
 <section id="exportScreen" class="screen"><div class="toprow"><div><h1>Export report</h1><p class="hint" style="margin:3px 0 0">Choose the format you want to save to this device.</p></div><button class="light" onclick="goHome()">← Home</button></div><div class="menu" style="margin-top:12px">
 <button onclick="downloadPDF()"><span class="ico">📄</span><strong>Save report as PDF</strong><small>Save a fixed-size A4 PDF copy of this report</small></button>
-<button onclick="downloadExcel()"><span class="ico">📊</span><strong>Excel report (.xlsx)</strong><small>Excel copy with the same report layout, photos and an editable data sheet</small></button>
+<button onclick="downloadExcel()"><span class="ico">📊</span><strong>Excel report (.xlsx)</strong><small>Same A4 page appearance as the PDF, with an extra editable data sheet. You can save or share the Excel file.</small></button>
 <button onclick="downloadWord()"><span class="ico">📝</span><strong>Editable Word document (.doc)</strong><small>Open in Microsoft Word and edit report text, dates, findings and details</small></button>
 <button onclick="emailReport()"><span class="ico">✉️</span><strong>Email report to office</strong><small>Enter the recipient email address; attach the downloaded report in your email app</small></button>
 <button onclick="downloadBackup()"><span class="ico">💾</span><strong>Full backup</strong><small>Report data and photos in one file</small></button>
@@ -314,9 +314,9 @@ main{max-width:1120px}
 <div id="fileSavePanel" class="file-save-panel" role="dialog" aria-modal="true" aria-labelledby="fileSaveTitle">
  <div class="file-save-card">
   <h2 id="fileSaveTitle">Your file is ready</h2>
-  <p>Tap <b>Save to phone</b>. Supported browsers open a save-location picker. On iPhone, choose <b>Save to Files</b> in the share sheet. If the picker is unavailable, use <b>Download file</b>.</p>
+  <p>Tap <b>Save to phone</b> to save this PDF, Excel or Word file. Tap <b>Share / Send file</b> to send it using WhatsApp, email or another supported app. On iPhone, choose <b>Save to Files</b> in the share sheet.</p>
   <div id="fileSaveName" class="file-name"></div>
-  <div class="actions"><button id="fileSaveToPhone" type="button">Save to phone</button><a id="fileDownloadLink" href="#" download>Download file</a></div><div class="actions"><button id="fileShareButton" type="button" class="light">Share file</button></div>
+  <div class="actions"><button id="fileSaveToPhone" type="button">Save to phone</button><a id="fileDownloadLink" href="#" download>Download file</a></div><div class="actions"><button id="fileShareButton" type="button" class="light">Share / Send file</button></div>
   <div class="actions"><button id="fileSaveClose" type="button" class="light">Close</button></div>
  </div>
 </div>
@@ -448,12 +448,17 @@ async function downloadExcel(){
   workbook.created=new Date();
   const page=workbook.addWorksheet('Report');
   page.views=[{showGridLines:false,zoomScale:85}];
-  for(let i=1;i<=12;i++)page.getColumn(i).width=10;
-  for(let i=1;i<=60;i++)page.getRow(i).height=18;
+  // Match the image bounds to the A4 canvas: the earlier oversized row grid
+  // caused Excel's print scaling to shrink the report and leave excess whitespace.
+  for(let i=1;i<=12;i++)page.getColumn(i).width=9.45;
+  for(let i=1;i<=60;i++)page.getRow(i).height=14.04;
   const imageId=workbook.addImage({base64:canvas.toDataURL('image/png'),extension:'png'});
   page.addImage(imageId,{tl:{col:0,row:0},ext:{width:794,height:1123}});
-  page.pageSetup={paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1};
-  page.properties.defaultRowHeight=18;
+  page.pageSetup={paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1,
+   margins:{left:0.15,right:0.15,top:0.15,bottom:0.15,header:0,footer:0},
+   horizontalDpi:300,verticalDpi:300};
+  page.pageSetup.printArea='A1:L60';
+  page.properties.defaultRowHeight=14.04;
   // Keep every report value editable in a companion worksheet.
   const dataSheet=workbook.addWorksheet('Editable report data');
   dataSheet.columns=[{header:'Report field',key:'field',width:34},{header:'Value',key:'value',width:90}];
